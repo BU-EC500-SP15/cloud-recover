@@ -1,112 +1,16 @@
-// reclo core functions
+// ReClo basic core functions
 // 2-22-2015
 
-// requirements
-// ------------------------------
-// connect to AWS DynamoDB
-var AWS = require('aws-sdk');
-AWS.config.region = 'us-west-2';
-var db = new AWS.DynamoDB();
+// Module dependencies
+// ---------------------------------
 
 // phpass password hashing
 var PasswordHash = require('phpass').PasswordHash;
 
-// core functions
-// ------------------------------
-
-// NOTES:
-// All dyanmoDB functions are prefixed with DDB
+// Module functions
+// ---------------------------------
 
 module.exports = {
-
-	DDBsearchUserEmail: function(email) {
-		// queries the dynamoDB for the existence of an email address.
-		// returns:
-		//  true if user with that email exists
-		//  false if user does not exist yet
-		//  null if error
-
-		// check dynamoDB for existing user (by email)
-		var params = {
-			TableName: "users",
-			IndexName: "email-index",
-			KeyConditions: {
-				"email": 
-	            {
-	                "AttributeValueList" : [
-	                {
-	                    "S" : email
-	                }
-	                ],
-	                "ComparisonOperator" : "EQ"
-	            }
-			},
-
-		};
-
-		db.query(params, function(err, data) {
-		    if (err) {
-		      console.log(err); // an error occurred
-		    }
-		    else {
-		      console.log('Email found.')
-		  	}
-		});
-	},
-
-	DDBcreateNewUser: function(username,email,password) {
-		// creates a new dynamoDB entry in the users table.
-		// returns:
-		//  true if new entry succesfully created
-		//  false if failed
-
-		// create GUID for new user
-		var uuid = this.generateUUID();
-
-		// hash user password for storage
-		var hashed_password = this.hashPassword(password);
-
-		// current timestamp
-		var timestamp = new Date().toUTCString();
-
-		var params = {
-			TableName: "users",
-			Item: {
-
-				"user_id": {
-					"S": uuid
-				},
-
-				"email": {
-					"S": email
-				},
-
-				"hash": {
-					"S": hashed_password
-				},
-
-				"user_status": {
-					"S": 'A' // active
-				},
-
-				"username": {
-					"S": username
-				},
-
-				"date_created": {
-					"S": timestamp
-				},
-			},
-		};
-
-		db.putItem(params, function(err, data) {
-
-			if (err)
-				console.log(err, err.stack); // an error occurred
-			else
-				console.log('Put successful.')
-		});
-	},
 
 	generateUUID: function() {
 	    var d = new Date().getTime();
@@ -130,8 +34,10 @@ module.exports = {
 
 		if (success)
 			return hash;
-		else
+		else {
+			console.log('Password hash failed.');
 			return null;
+		}
 	},
 
 	validateEmail: function(email) {
