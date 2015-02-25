@@ -9,6 +9,4 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'reclo'});
 });
 
-corelib.testfn();
-
 module.exports = router;
