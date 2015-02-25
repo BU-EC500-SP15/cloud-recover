@@ -1,11 +1,11 @@
 var express = require('express');
 var path = require('path');
-var favicon = require('serve-favicon');
+//var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
-var routes = require('./routes/index');
+var index = require('./routes/index');
 var login = require('./routes/login');
 var logout = require('./routes/logout');
 var register = require('./routes/register');
@@ -22,10 +22,12 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+// serve static content
 app.use(express.static(path.join(__dirname, 'public')));
 
 // REST API routes
-app.use('/', routes);
+app.use('/', index);
 app.use('/login',login);
 app.use('/logout',logout);
 app.use('/register',register);

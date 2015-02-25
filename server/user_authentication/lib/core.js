@@ -4,8 +4,8 @@
 // Module dependencies
 // ---------------------------------
 
-// phpass password hashing
-var PasswordHash = require('phpass').PasswordHash;
+// bycrypt password hashing
+var bcrypt = require('bcrypt-nodejs');
 
 // Module functions
 // ---------------------------------
@@ -28,11 +28,9 @@ module.exports = {
 		//  hash if hash was successful
 		//  null if hash failed
 
-		var passwordHash = new PasswordHash();
-		var hash = passwordHash.hashPassword(password);
-		var success = passwordHash.checkPassword(password,hash);
+		var hash = bcrypt.hashSync(password);
 
-		if (success)
+		if (hash)
 			return hash;
 		else {
 			console.log('Password hash failed.');
