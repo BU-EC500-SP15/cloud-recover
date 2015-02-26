@@ -45,34 +45,41 @@ router.post('/', function(req, res) {
             console.log('Query Error: ' + err); // an error occurred
             res.json({success:0, error:1, error_msg:"Password or Email Invalid"});
             res.send();
-      } 
+        } 
         else {
 
-            //check that password matches hash
-            var uuid = data.Items[0].user_id['S'];
-            var hash = data.Items[0].hash['S'];
-            var userStatus= data.Items[0].user_status['S'];
+            // user exists
+            if (data.Count > 0) {
+
+                //check that password matches hash
+                var uuid = data.Items[0].user_id['S'];
+                var hash = data.Items[0].hash['S'];
+                var userStatus= data.Items[0].user_status['S'];
 
 
-            if(corelib.checkPasswordHash(hash, password) && userStatus == "A")
-            {
-                loginUser(uuid, res);
-            }
-            else
-            {
-                var err_msg = '';
-
-                if (userStatus != "A")
-                    err_msg = 'Authentication Error: user inactive.';
+                if(corelib.checkPasswordHash(hash, password) && userStatus == "A")
+                {
+                    loginUser(uuid, res);
+                }
                 else
-                    err_msg = 'Authentication Error: password invalid.';
+                {
+                    var err_msg = '';
 
-                console.log(err_msg);
-                res.json({success:0, error:1, error_msg:err_msg});
-                res.send()
+                    if (userStatus != "A")
+                        err_msg = 'Authentication Error: user inactive.';
+                    else
+                        err_msg = 'Authentication Error: password invalid.';
+
+                    console.log(err_msg);
+                    res.json({success:0, error:1, error_msg:err_msg});
+                    res.send()
+                }
             }
-        }
-
+            else {
+                console.log('Authentication Error: user does not exist');
+                res.json({success:0, error:1,error_msg:'Authentication Error: user does not exist'});
+            }
+        }// if (err)
     });
 });
 
