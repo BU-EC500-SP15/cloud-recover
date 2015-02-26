@@ -45,7 +45,7 @@ router.post('/', function(req, res) {
       	else {
       		if (data.Count > 0) {
       			// token exists and okay to deactivate
-      			deactivateToken(token);
+      			deactivateToken(token,res);
       		}
       	}
     });
@@ -53,7 +53,7 @@ router.post('/', function(req, res) {
 
 
 // change token_status to disabled 'D'
-function deactivateToken(token) {
+function deactivateToken(token,res) {
 
 	// updateItem parameters
 	var params = {

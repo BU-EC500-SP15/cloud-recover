@@ -76,7 +76,7 @@ router.post('/', function(req,res) {
 		     	else
 		     	{
 		     		// no user defined with provided email. OK to create new user.
-		     		createNewUser(email,username,password);
+		     		createNewUser(email,username,password,res);
 				}
 			} // if (err)
 		});
@@ -96,7 +96,7 @@ router.post('/', function(req,res) {
 });
 
 // Create a new user entry in the DynamoDB users table
-function createNewUser(email,username,password) {
+function createNewUser(email,username,password,res) {
 
 	// create GUID for new user
 	var uuid = corelib.generateUUID();
