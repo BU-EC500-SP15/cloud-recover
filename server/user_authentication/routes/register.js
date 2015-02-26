@@ -1,6 +1,5 @@
 var express = require('express');
 var corelib = require('../lib/core');
-var DDB = require('../lib/DDB');
 var router = express.Router();
 
 // connect to AWS DynamoDB
@@ -16,8 +15,8 @@ router.post('/', function(req,res) {
 	var password = req.body.password;
 	var email = req.body.email;
 	
+	// validate form information
 	var tests = [];
-
 	tests[0] = corelib.validateUsername(username);
 	tests[1] = corelib.validatePassword(password);
 	tests[2] = corelib.validateEmail(email);
@@ -32,10 +31,10 @@ router.post('/', function(req,res) {
 	}
 
 	if (allValid) {
-		// queries the dynamoDB for the existence of an email address.
-		// if email not found, creates a new user entry
+		// query the dynamoDB for the existence of an email address.
+		// if email not found, create a new user entry
 
-		// check dynamoDB for existing user (by email)
+		// query parameters
 		var params = {
 			TableName: "users",
 			IndexName: "email-index",
@@ -50,20 +49,27 @@ router.post('/', function(req,res) {
 			},
 		};
 
+		// query database
 		db.query(params, function(err, data) {
 		    if (err) {
 		      	// error occured, data is null
-		      	console.log("Email Query Error: " + err);
+		      	console.log("Query Error: " + err);
+		      	res.json({Success: 0, Error: 1}); // Error 1: dynamoDB error
+		      	res.send();
 		    }
 		    else
 		    {
 		    	// query successful, err is null
 		    	if (data.Count > 0) {
 		     		console.log('Email found: ' + data.Items[0].email['S']); // email located
-		     		console.log('putItem Unsuccessful');
+		     		console.log('putItem failed: user already exists!');
+		     		res.json({Success: 0, Error: 2}); // Error 2: user already exists
+		     		res.send();
 				}
 		     	else
 		     	{
+		     		// no user defined with provided email. OK to create new user.
+
 					// create GUID for new user
 					var uuid = corelib.generateUUID();
 
@@ -95,13 +101,15 @@ router.post('/', function(req,res) {
 
 						if (err) {
 							// put failed, data is null
-							res.send('Failed to create user');
 							console.log('putItem Error: ' + err + ', ' + err.stack);
+							res.json({Success: 0, Error: 1}); // Error 1: dynamoDB error
+		      				res.send();
 						}
 						else {
 							// put successful, err is null
-							res.send('User created successfully!');
-							console.log('putItem Successful');
+							console.log('putItem Successful: user created!');
+							res.json({success: 1, error: 0}); // User creation successful
+							res.send();
 						}
 					});
 				}

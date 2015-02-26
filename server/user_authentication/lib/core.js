@@ -12,7 +12,19 @@ var bcrypt = require('bcrypt-nodejs');
 
 module.exports = {
 
+	createToken: function() {
+		// creates a unique token 
+	    var d = new Date().getTime();
+	    var token = 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+	        var r = (d + Math.random()*16)%16 | 0;
+	        d = Math.floor(d/16);
+	        return (c=='x' ? r : (r&0x3|0x8)).toString(16);
+	    });
+    	return token;		
+	},
+
 	generateUUID: function() {
+		// generates a unique user_id for each new user added to the database
 	    var d = new Date().getTime();
 	    var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
 	        var r = (d + Math.random()*16)%16 | 0;
@@ -23,7 +35,7 @@ module.exports = {
 	},
 
 	hashPassword: function(password) {
-		// hashes a user password using an open-source hashing algorithm
+		// hashes a user password using an bcrypt-nodejs
 		// returns:
 		//  hash if hash was successful
 		//  null if hash failed
@@ -37,6 +49,15 @@ module.exports = {
 			return null;
 		}
 	},
+
+	checkPasswordHash: function(hash,password) {
+		// compares a user password to a generated hash
+		// returns:
+		//  true if password matches hash
+		//  false if password does not match hash
+
+		return bcrypt.compareSync(password,hash);
+	}
 
 	validateEmail: function(email) {
 		// validates a provided email address using the RFC 2822 compliant regexp
