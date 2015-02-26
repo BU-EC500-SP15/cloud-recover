@@ -22,6 +22,39 @@ router.post('/', function(req, res) {
 
 	// invalidate token in Token table
 
+	// query database to check if token already exists
+	var params = {
+        TableName : 'tokens',
+        KeyConditions : { 
+            "token_id" : {
+            "AttributeValueList" : [ 
+                {"S" :  token}
+                ],
+            "ComparisonOperator" : "EQ",
+            }
+        }
+    }
+
+	// query DynamoDB for desired token
+    db.query(params, function(err, data) {
+        if (err) {
+            console.log('Query Error: ' + err); // an error occurred
+            res.json({success:0, error:1, error_msg:"query Error: token not found"});
+            res.send();
+      	}
+      	else {
+      		if (data.Count > 0) {
+      			// token exists and okay to deactivate
+      			deactivateToken(token);
+      		}
+      	}
+    });
+});
+
+
+// change token_status to disabled 'D'
+function deactivateToken(token) {
+
 	// updateItem parameters
 	var params = {
 			TableName: "tokens",
@@ -38,7 +71,7 @@ router.post('/', function(req, res) {
 	db.updateItem(params, function(err, data) {
   		if (err) {
   			console.log('updateItem Error: ' + err); // an error occurred
-  			res.json({success: 0, error: 1}); // Error 1: table update failed
+  			res.json({success: 0, error: 1, error_msg:"updateItem Error: token deactivation failed"}); // Error 1: table update failed
   			res.send();
   		}
   		else {
@@ -47,6 +80,6 @@ router.post('/', function(req, res) {
   			res.send();
   		}
 	});
-});
+}
 
 module.exports = router;
