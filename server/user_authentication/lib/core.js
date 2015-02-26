@@ -16,7 +16,7 @@ module.exports = {
 		// creates a standard UTC timestamp string
 		var d = new Date().toUTCString();
 		return d;
-	}
+	},
 
 	createToken: function() {
 		// creates a unique token 
