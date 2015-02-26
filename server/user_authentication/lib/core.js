@@ -57,7 +57,7 @@ module.exports = {
 		//  false if password does not match hash
 
 		return bcrypt.compareSync(password,hash);
-	}
+	},
 
 	validateEmail: function(email) {
 		// validates a provided email address using the RFC 2822 compliant regexp
