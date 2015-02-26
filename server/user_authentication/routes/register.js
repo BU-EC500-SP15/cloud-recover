@@ -105,7 +105,7 @@ function createNewUser(email,username,password,res) {
 	var hashed_password = corelib.hashPassword(password);
 
 	// current timestamp
-	var timestamp = corelib.createToken();
+	var timestamp = corelib.createTimestamp();
 
 	var params = {
 		TableName: "users",
