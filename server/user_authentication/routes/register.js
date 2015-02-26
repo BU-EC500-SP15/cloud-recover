@@ -1,6 +1,5 @@
 var express = require('express');
 var corelib = require('../lib/core');
-var DDB = require('../lib/DDB');
 var router = express.Router();
 
 // connect to AWS DynamoDB
