@@ -12,6 +12,12 @@ var bcrypt = require('bcrypt-nodejs');
 
 module.exports = {
 
+	createTimestamp: function() {
+		// creates a standard UTC timestamp string
+		var d = new Date().toUTCString();
+		return d;
+	}
+
 	createToken: function() {
 		// creates a unique token 
 	    var d = new Date().getTime();

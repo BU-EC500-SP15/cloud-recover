@@ -54,7 +54,7 @@ router.post('/', function(req,res) {
 		    if (err) {
 		      	// error occured, data is null
 		      	console.log("Query Error: " + err);
-		      	res.json({Success: 0, Error: 1}); // Error 1: dynamoDB error
+		      	res.json({success: 0, error: 1}); // Error 1: dynamoDB error
 		      	res.send();
 		    }
 		    else
@@ -63,7 +63,7 @@ router.post('/', function(req,res) {
 		    	if (data.Count > 0) {
 		     		console.log('Email found: ' + data.Items[0].email['S']); // email located
 		     		console.log('putItem failed: user already exists!');
-		     		res.json({Success: 0, Error: 2}); // Error 2: user already exists
+		     		res.json({success: 0, error: 2}); // Error 2: user already exists
 		     		res.send();
 				}
 		     	else
@@ -77,7 +77,7 @@ router.post('/', function(req,res) {
 					var hashed_password = corelib.hashPassword(password);
 
 					// current timestamp
-					var timestamp = new Date().toUTCString();
+					var timestamp = corelib.createToken();
 
 					var params = {
 						TableName: "users",
@@ -102,7 +102,7 @@ router.post('/', function(req,res) {
 						if (err) {
 							// put failed, data is null
 							console.log('putItem Error: ' + err + ', ' + err.stack);
-							res.json({Success: 0, Error: 1}); // Error 1: dynamoDB error
+							res.json({success: 0, error: 1}); // Error 1: dynamoDB error
 		      				res.send();
 						}
 						else {
