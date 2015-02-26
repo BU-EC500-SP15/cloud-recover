@@ -1,9 +1,17 @@
+// ReClo: user_authentication
+// --------------------------
+// Express RestAPI middleware
+// v1.0.0
+// Carlton Duffett
+// 2-25-2015
+
 var express = require('express');
 var path = require('path');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
+// define API routes
 var index = require('./routes/index');
 var login = require('./routes/login');
 var logout = require('./routes/logout');

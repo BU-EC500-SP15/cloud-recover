@@ -1,3 +1,10 @@
+// ReClo: user_authentication
+// --------------------------
+// API Logout Script
+// v1.0.0
+// Carlton Duffett
+// 2-25-2015
+
 var express = require('express');
 var router = express.Router();
 var corelib = require('../lib/core.js');
