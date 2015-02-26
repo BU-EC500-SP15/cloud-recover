@@ -82,7 +82,6 @@ function loginUser(uuid, res)
 						}
 						else {
 							// put successful, err is null
-							res.send('User created successfully!');
 							res.json({success:1, error:0, user_id: uuid, token:token_id, date_created: timestamp });
 							console.log('Logged in user Successful');
 
