@@ -61,7 +61,7 @@ router.post('/', function(req,res) {
 		    if (err) {
 		      	// error occured, data is null
 		      	console.log("Query Error: " + err);
-		      	res.json({success: 0, error: 1}); // Error 1: dynamoDB error
+		      	res.json({success: 0, error: 1, msg:'DDB query error'}); // Error 1: dynamoDB error
 		      	res.send();
 		    }
 		    else
@@ -70,7 +70,7 @@ router.post('/', function(req,res) {
 		    	if (data.Count > 0) {
 		     		console.log('Email found: ' + data.Items[0].email['S']); // email located
 		     		console.log('putItem failed: user already exists!');
-		     		res.json({success: 0, error: 2}); // Error 2: user already exists
+		     		res.json({success: 0, error: 2, msg:'user already exists'}); // Error 2: user already exists
 		     		res.send();
 				}
 		     	else
@@ -90,7 +90,7 @@ router.post('/', function(req,res) {
 		if (tests[2] == false)
 			console.log('Validation Error: invalid email.')
 
-		res.json({success: 0, error: 3}); // Error 3: invalid username, password, or email
+		res.json({success: 0, error: 3, msg:'invalid username, password, or email'}); // Error 3: invalid username, password, or email
 		res.send();
 	}
 });
@@ -130,13 +130,13 @@ function createNewUser(email,username,password,res) {
 		if (err) {
 			// put failed, data is null
 			console.log('putItem Error: ' + err + ', ' + err.stack);
-			res.json({success: 0, error: 1}); // Error 1: dynamoDB error
+			res.json({success: 0, error: 1, msg:'DDB putItem operation failed'}); // Error 1: dynamoDB error
 				res.send();
 		}
 		else {
 			// put successful, err is null
 			console.log('putItem Successful: user created!');
-			res.json({success: 1, error: 0}); // User creation successful
+			res.json({success: 1, error: 0, msg:'New user created'}); // User creation successful
 			res.send();
 		}
 	});

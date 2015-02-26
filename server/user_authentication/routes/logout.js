@@ -39,7 +39,7 @@ router.post('/', function(req, res) {
     db.query(params, function(err, data) {
         if (err) {
             console.log('Query Error: ' + err); // an error occurred
-            res.json({success:0, error:1, error_msg:"query Error: token not found"});
+            res.json({success:0, error:1, msg:"query Error: token not found"});
             res.send();
       	}
       	else {
@@ -71,12 +71,12 @@ function deactivateToken(token,res) {
 	db.updateItem(params, function(err, data) {
   		if (err) {
   			console.log('updateItem Error: ' + err); // an error occurred
-  			res.json({success: 0, error: 1, error_msg:"updateItem Error: token deactivation failed"}); // Error 1: table update failed
+  			res.json({success: 0, error: 1, msg:"updateItem Error: token deactivation failed"}); // Error 1: table update failed
   			res.send();
   		}
   		else {
   			console.log('updateItem successful: token disabled'); // successful response
-  			res.json({success: 1, error: 0});
+  			res.json({success: 1, error: 0, msg:'logout successful: token disabled'});
   			res.send();
   		}
 	});

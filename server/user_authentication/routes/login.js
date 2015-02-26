@@ -43,7 +43,7 @@ router.post('/', function(req, res) {
     db.query(params, function(err, data) {
         if (err) {
             console.log('Query Error: ' + err); // an error occurred
-            res.json({success:0, error:1, error_msg:"Password or Email Invalid"});
+            res.json({success:0, error:1, msg:"DDB query error"});
             res.send();
         } 
         else {
@@ -71,13 +71,13 @@ router.post('/', function(req, res) {
                         err_msg = 'Authentication Error: password invalid.';
 
                     console.log(err_msg);
-                    res.json({success:0, error:1, error_msg:err_msg});
+                    res.json({success:0, error:1, msg:err_msg});
                     res.send()
                 }
             }
             else {
                 console.log('Authentication Error: user does not exist');
-                res.json({success:0, error:1,error_msg:'Authentication Error: user does not exist'});
+                res.json({success:0, error:1,msg:'Authentication Error: user does not exist'});
             }
         }// if (err)
     });
@@ -105,13 +105,13 @@ function loginUser(uuid, res) {
         if (err) {
             // put failed, data is null
             console.log('putItem Error: ' + err + ', ' + err.stack);
-            res.json({success:0, error:2, error_msg:"failed inserting token"});
+            res.json({success:0, error:2, msg:"failed inserting token"});
             res.send();
         }
         else {
             // put successful, err is null
             console.log('putItem Successful: user logged in');
-            res.json({success:1, error:0, user_id: uuid, token:token_id, date_created: timestamp });
+            res.json({success:1, error:0, user_id: uuid, token:token_id, date_created: timestamp, msg:'login successful'});
             res.send();
         }
     });
