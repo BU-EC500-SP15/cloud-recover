@@ -21,7 +21,7 @@ function openDBConnection(res,username,email,password) {
     
     // Amazon RDS host address
     var host = corelib.getMySQLHost().toString();
-    var url = "http://169.254.169.254/latest/meta-data/iam/security-credentials/reclo-server";
+    var url = "http://169.254.169.254/latest/user-data";
 
     // get password securely
     http.get(url, function handleResponse(pwres){
@@ -34,8 +34,7 @@ function openDBConnection(res,username,email,password) {
                 res.send();
             }
             else {
-                var obj = JSON.parse(data.toString());
-                var pw = obj.SecretAccessKey.toString().slice(0,16); // pw is first 16 character os Secret Key
+                var pw = data.toString().slice(5);
 
                 // connect to ReClo databse
                 var db = mysql.createConnection({
