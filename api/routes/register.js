@@ -1,4 +1,4 @@
-// ReClo: api/ua/register
+// ReClo: /ua/register
 // ----------------------------
 // API User Registration Script
 // v2.0.0
@@ -16,11 +16,11 @@ var router = express.Router();
 /* FUNCTION DEFINITIONS                                                                */
 /***************************************************************************************/
 
-// connect to MySQL Database
+// connect to MySQL Database using meta-data password
 function openDBConnection(res,username,email,password) {
     
     // Amazon RDS host address
-    var host = corelib.getMySQLHost();
+    var host = corelib.getMySQLHost().toString();
     var url = "http://169.254.169.254/latest/meta-data/iam/security-credentials/reclo-server";
 
     // get password securely
@@ -40,7 +40,6 @@ function openDBConnection(res,username,email,password) {
                 // connect to ReClo databse
                 var db = mysql.createConnection({
                     host     : host,
-                    port     : '3306',
                     user     : 'reclo',
                     password : pw,
                     database: 'reclodb',
@@ -48,7 +47,7 @@ function openDBConnection(res,username,email,password) {
                 db.connect();
 
                 // proceed with user registration
-                registerNewUser(res,db,username,email,password);
+                checkUserExistence(res,db,username,email,password);
             }
         }));
     });
@@ -60,12 +59,11 @@ function checkUserExistence(res,db,username,email,password) {
     db.query(qry,[email],function(err,results){
 
         if (err) {
-            console.log('checkUserExistence Error: ' + err);
+            console.log('checkUserExistence ' + err);
             res.json({success: 0, error: 1, msg:'MySQL checkUserExistence query failed'}); // Error 1: MySQL error
             res.send();
         }
         else {
-
             if (results[0] == null) {
                 // email not found, OK to create new user
                 registerNewUser(res,db,username,email,password);
@@ -104,7 +102,7 @@ function registerNewUser(res,db,username,email,password) {
     db.query(qry,post,function(err,results){
 
         if (err) {
-            console.log('registerNewUser Error: ' + err);
+            console.log('registerNewUser ' + err);
             res.json({success: 0, error: 1, msg:'MySQL registerNewUser query failed'}); // Error 1: MySQL error
             res.send();
         }
