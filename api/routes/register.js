@@ -35,7 +35,7 @@ function openDBConnection(res,username,email,password) {
             }
             else {
                 var obj = JSON.parse(data.toString());
-                var pw = obj.SecretAccessKey.toString();
+                var pw = obj.SecretAccessKey.toString().slice(0,16); // pw is first 16 character os Secret Key
 
                 // connect to ReClo databse
                 var db = mysql.createConnection({
