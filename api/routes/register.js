@@ -28,11 +28,11 @@ function openDBConnection(res,username,email,password) {
 
         pwres.pipe(bl(function(err,data){
 
-            if (err)
+            if (err) {
                 console.error('There was an error getting db password: ' + err);
                 res.json({success: 0, error: 1, msg:'Failed to obtain database password'});
                 res.send();
-
+            }
             else {
                 var obj = JSON.parse(data.toString());
                 var pw = obj.SecretAccessKey.toString();
