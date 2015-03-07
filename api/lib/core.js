@@ -4,13 +4,18 @@
 // Module dependencies
 // ---------------------------------
 
-// bycrypt password hashing
-var bcrypt = require('bcrypt-nodejs');
+var bcrypt = require('bcrypt-nodejs'); // hashing
+var http = require('http');
+var bl = require('bl'); // buffer list
 
 // Module functions
 // ---------------------------------
 
 module.exports = {
+
+	getMySQLHost: function() {
+		return 'reclodb.ctng2ag7pnrb.us-west-2.rds.amazonaws.com';
+	},
 
 	createTimestamp: function() {
 		// creates a standard UTC timestamp string
