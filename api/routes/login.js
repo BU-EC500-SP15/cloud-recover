@@ -86,7 +86,7 @@ function verifyUser(res,db,email,password) {
                 if (corelib.checkPasswordHash(password,hash)){
                     // proceed with login
                     var user_id = results[0].user_id;
-                    loginUser(res,db,user_id);
+                    checkUserLoginStatus(res,db,user_id);
                 }
                 else {
                     console.log('Error: Password does not match');
@@ -94,6 +94,35 @@ function verifyUser(res,db,email,password) {
                     res.send();
                     closeDBConnection(db);
                 }
+            }
+        }
+    });
+}
+
+function checkUserLoginStatus(res,db,user_id) {
+
+    // verify that user is not already logged in
+    var qry = "SELECT token_id FROM reclodb.tokens WHERE user_id = ? AND token_status = 'A'";
+    db.query(qry,[user_id],function(err,results){
+
+        if (err) {
+            console.log('loginUser ' + err);
+            res.json({success: 0, error: 1, msg:'MySQL loginUser query failed'}); // Error 1: MySQL error
+            res.send();
+            closeDBConnection(db);
+        }
+        else {
+
+            if (results[0].token_id == null) {
+                // user not already logged in, okay to proceed
+                loginUser(res,db,user_id);
+            }
+            else {
+                // user already logged in!
+                console.log('Error: User aleady logged in');
+                res.json({success: 0, error: 2, msg:'User already logged in'}); // Error 2: Password does not match
+                res.send();
+                closeDBConnection(db);
             }
         }
     });
@@ -118,7 +147,7 @@ function loginUser(res,db,user_id) {
             console.log('loginUser ' + err);
             res.json({success: 0, error: 1, msg:'MySQL loginUser query failed'}); // Error 1: MySQL error
             res.send();
-            closeDBConnection();
+            closeDBConnection(db);
         }
         else {
             console.log('loginUser successful!');
