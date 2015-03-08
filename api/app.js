@@ -19,6 +19,12 @@ var register = require('./routes/register');
 
 var app = express();
 
+// set port to listen on
+app.set('port',443);
+
+// currently in development mode
+app.set('env','development');
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -68,6 +74,8 @@ app.use(function(err, req, res, next) {
     });
 });
 
-module.exports = app;
+app.listen(app.get('port'));
+console.log('user_authentication server running!');
+console.log('Listening on port: ' + app.get('port'));
 
-console.log('user_authentication server running!')
+module.exports = app;
