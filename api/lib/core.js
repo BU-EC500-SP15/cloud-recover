@@ -5,6 +5,7 @@
 // ---------------------------------
 
 var bcrypt = require('bcrypt-nodejs'); // hashing
+var mysql = require('mysql');
 var http = require('http');
 var bl = require('bl'); // buffer list
 
