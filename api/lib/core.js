@@ -1,5 +1,5 @@
 // ReClo basic core functions
-// 2-22-2015
+// 3-8-2015
 
 // Module dependencies
 // ---------------------------------
@@ -13,9 +13,46 @@ var bl = require('bl'); // buffer list
 
 module.exports = {
 
-	getMySQLHost: function() {
-		return 'reclodb.ctng2ag7pnrb.us-west-2.rds.amazonaws.com';
+	openDBConnection: function(res,callback,params) {
+    
+	    // Amazon RDS host address
+	    var host = 'reclodb.ctng2ag7pnrb.us-west-2.rds.amazonaws.com';
+	    var url = "http://169.254.169.254/latest/user-data";
+
+	    // get password securely
+	    http.get(url, function handleResponse(response){
+
+	        response.pipe(bl(function(err,data){
+
+	            if (err) {
+	                console.error('There was an error getting db password: ' + err);
+	                res.status(500).json({error: 'There was an error connecting to the database'}); // MySQL error
+	            }
+	            else {
+	                var pw = data.toString().slice(5);
+
+	                // connect to ReClo databse
+	                var db = mysql.createConnection({
+	                    host     : host,
+	                    port     : '3306',
+	                    user     : 'reclo',
+	                    password : pw,
+	                    database : 'reclodb',
+	                });
+	                db.connect();
+
+	                // proceed with query
+	                callback(res,db,params);
+	            }
+	        }));
+	    });
 	},
+
+	closeDBConnection: function(db) {
+		// close connection to MySQL database
+		db.end();
+	},
+
 
 	createTimestamp: function() {
 		// creates a standard UTC timestamp string

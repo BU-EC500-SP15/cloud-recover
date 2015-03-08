@@ -1,7 +1,6 @@
-// ReClo: /ua/logout
+// ReClo: /logout
 // -----------------
-// API Logout Script
-// v2.0.0
+// v2.0.1
 // Carlton Duffett
 // 3-8-2015
 
@@ -12,80 +11,31 @@ var bl = require('bl');
 var corelib = require('../lib/core.js');
 var router = express.Router();
 
-// Response Error Codes:
-// --------------------
-// 1 = System Error (MySQL query error, database connection error, etc.)
-// 2 = User Error (invalid user credentials, user not found, etc.)
-
 /***************************************************************************************/
 /* FUNCTION DEFINITIONS                                                                */
 /***************************************************************************************/
 
-// connect to MySQL Database using user-data password
-function openDBConnection(res,token) {
-    
-    // Amazon RDS host address
-    var host = corelib.getMySQLHost().toString();
-    var url = "http://169.254.169.254/latest/user-data";
+var cb = function logout(res,db,params) {
 
-    // get password securely
-    http.get(url, function handleResponse(pwres){
-
-        pwres.pipe(bl(function(err,data){
-
-            if (err) {
-                console.error('There was an error getting db password: ' + err);
-                res.json({success: 0, error: 1, msg:'Failed to obtain database password'}); // Error 1: MySQL Error
-                res.send();
-            }
-            else {
-                var pw = data.toString().slice(5);
-
-                // connect to ReClo databse
-                var db = mysql.createConnection({
-                    host     : host,
-                    port     : '3306',
-                    user     : 'reclo',
-                    password : pw,
-                    database : 'reclodb',
-                });
-                db.connect();
-
-                // proceed with user verification
-                deactivateToken(res,db,token);
-            }
-        }));
-    });
-}
-
-// change token_status to disabled 'D'
-function deactivateToken(res,db,token) {
-
+    // change token_status to disabled 'D'
     var timestamp = corelib.createTimestamp();
     var qry = "UPDATE reclodb.tokens SET token_status = 'D', date_deactivated = ? WHERE token_id = ?";
 
-    db.query(qry,[timestamp,token],function(err,results){
+    db.query(qry,[timestamp,params.token],function(err,results){
 
         if (err) {
             console.log('deactivateToken ' + err);
-            res.json({success: 0, error: 1, msg:'MySQL deactivateToken query failed'}); // Error 1: MySQL error
-            res.send();
+            res.status(500).json({error: 'Failed to deactivate session token'}); // MySQL error
             closeDBConnection(db);
         }
         else {
             console.log('logoutUser successful!');
-            res.json({success: 1, error: 0, msg:'logout successful'});
-            res.send();
+            res.status(200).json({message: 'Logout successful'});
 
             // disconnect from database
-            closeDBConnection(db);
+            corelib.closeDBConnection(db);
         }
     });
-}
-
-// close database connection after success
-function closeDBConnection(db) {
-    db.end();
 }
 
 /***************************************************************************************/
@@ -98,7 +48,8 @@ router.post('/', function(req, res) {
     var token = req.body.token;
 
     // invalidate token in Token table
-    openDBConnection(res,token);
+    var params = {'token': token};
+    corelib.openDBConnection(res,cb,params);
 });
 
 module.exports = router;

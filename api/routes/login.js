@@ -1,9 +1,8 @@
-// ReClo: /ua/login
+// ReClo: /login
 // ----------------
-// API Login Script
-// v2.0.0
+// v2.0.1
 // Carlton Duffett
-// 3-7-2015
+// 3-8-2015
 
 var express = require('express');
 var mysql = require('mysql');
@@ -12,158 +11,110 @@ var bl = require('bl');
 var corelib = require('../lib/core');
 var router = express.Router();
 
-// Response Error Codes:
-// --------------------
-// 1 = System Error (MySQL query error, database connection error, etc.)
-// 2 = User Error (invalid user credentials, user not found, etc.)
-
 /***************************************************************************************/
 /* FUNCTION DEFINITIONS                                                                */
 /***************************************************************************************/
 
-// connect to MySQL Database using user-data password
-function openDBConnection(res,email,password) {
-    
-    // Amazon RDS host address
-    var host = corelib.getMySQLHost().toString();
-    var url = "http://169.254.169.254/latest/user-data";
+var cb = function login(res,db,params) {
 
-    // get password securely
-    http.get(url, function handleResponse(pwres){
+    // verify user in database
+    function verifyUser() {
 
-        pwres.pipe(bl(function(err,data){
+        // query database for user
+        var qry = "SELECT * FROM reclodb.users WHERE email = ? AND user_status = 'A'";
+        db.query(qry,[params.email],function(err,results){
 
             if (err) {
-                console.error('There was an error getting db password: ' + err);
-                res.json({success: 0, error: 1, msg:'Failed to obtain database password'}); // Error 1: MySQL Error
-                res.send();
+                console.log('verifyUser ' + err);
+                res.status(500).json({error: 'There was an error connecting to the database'}); // MySQL error
+                corelib.closeDBConnection(db);
             }
             else {
-                var pw = data.toString().slice(5);
-
-                // connect to ReClo databse
-                var db = mysql.createConnection({
-                    host     : host,
-                    port     : '3306',
-                    user     : 'reclo',
-                    password : pw,
-                    database : 'reclodb',
-                });
-                db.connect();
-
-                // proceed with user verification
-                verifyUser(res,db,email,password);
-            }
-        }));
-    });
-}
-
-// verify user in database
-function verifyUser(res,db,email,password) {
-
-    // query database for user
-    var qry = "SELECT * FROM reclodb.users WHERE email = ? AND user_status = 'A'";
-    db.query(qry,[email],function(err,results){
-
-        if (err) {
-            console.log('verifyUser ' + err);
-            res.json({success: 0, error: 1, msg:'MySQL verifyUser query failed'}); // Error 1: MySQL error
-            res.send();
-            closeDBConnection(db);
-        }
-        else {
-            if (results[0] == null) {
-                // user not found
-                console.log('Error: User not found');
-                res.json({success: 0, error: 2, msg:'User not found'}); // Error 2: User not found
-                res.send();
-                closeDBConnection(db);
-            }
-            else {
-                var hash = results[0].hash;
-
-                // check that passwords match
-                if (corelib.checkPasswordHash(password,hash)){
-                    // proceed with login
-                    var user_id = results[0].user_id;
-                    checkUserLoginStatus(res,db,user_id);
+                if (results[0] == null) {
+                    // user not found
+                    console.log('Error: User not found');
+                    res.status(500).json({error:'User not found'}); // User not found
+                    corelib.closeDBConnection(db);
                 }
                 else {
-                    console.log('Error: Password does not match');
-                    res.json({success: 0, error: 2, msg:'Password does not match'}); // Error 2: Password does not match
-                    res.send();
-                    closeDBConnection(db);
+                    var hash = results[0].hash;
+
+                    // check that passwords match
+                    if (corelib.checkPasswordHash(params.password,hash)){
+                        // proceed with login
+                        var user_id = results[0].user_id;
+                        checkUserLoginStatus(user_id);
+                    }
+                    else {
+                        console.log('Error: Password does not match');
+                        res.status(500).json({error:'Password does not match'}); // Password does not match
+                        corelib.closeDBConnection(db);
+                    }
                 }
             }
-        }
-    });
-}
+        });
+    }
 
-function checkUserLoginStatus(res,db,user_id) {
+    function checkUserLoginStatus(user_id) {
 
-    // verify that user is not already logged in
-    var qry = "SELECT token_id FROM reclodb.tokens WHERE user_id = ? AND token_status = 'A'";
-    db.query(qry,[user_id],function(err,results){
+        // verify that user is not already logged in
+        var qry = "SELECT token_id FROM reclodb.tokens WHERE user_id = ? AND token_status = 'A'";
+        db.query(qry,[user_id],function(err,results){
 
-        if (err) {
-            console.log('loginUser ' + err);
-            res.json({success: 0, error: 1, msg:'MySQL loginUser query failed'}); // Error 1: MySQL error
-            res.send();
-            closeDBConnection(db);
-        }
-        else {
-
-            if (results[0] == null) {
-                // user not already logged in, okay to proceed
-                loginUser(res,db,user_id);
+            if (err) {
+                console.log('loginUser ' + err);
+                res.status(500).json({error:'There was an error connecting to the database'}); // MySQL error
+                corelib.closeDBConnection(db);
             }
             else {
-                // user already logged in!
-                console.log('Error: User aleady logged in');
-                res.json({success: 0, error: 2, msg:'User already logged in'}); // Error 2: Password does not match
-                res.send();
-                closeDBConnection(db);
+
+                if (results[0] == null) {
+                    // user not already logged in, okay to proceed
+                    createToken(user_id);
+                }
+                else {
+                    // user already logged in!
+                    console.log('Error: User aleady logged in');
+                    res.status(500).json({error:'User already logged in'});
+                    corelib.closeDBConnection(db);
+                }
             }
-        }
-    });
-}
+        });
+    }
 
-function loginUser(res,db,user_id) {
+    function createToken(user_id) {
 
-    // generate token, timestamp
-    var token_id = corelib.createToken();
-    var timestamp = corelib.createTimestamp();
+        // generate token, timestamp
+        var token_id = corelib.createToken();
+        var timestamp = corelib.createTimestamp();
 
-    // add token to token table
-    var post = {token_id: token_id, 
-                user_id: user_id,
-                date_created: timestamp,
-                token_status: 'A',
-            };
-    var qry = "INSERT INTO reclodb.tokens SET ?";
-    db.query(qry,post,function(err,results){
+        // add token to token table
+        var post = {token_id: token_id, 
+                    user_id: user_id,
+                    date_created: timestamp,
+                    token_status: 'A',
+                };
+        var qry = "INSERT INTO reclodb.tokens SET ?";
+        db.query(qry,post,function(err,results){
 
-        if (err) {
-            console.log('loginUser ' + err);
-            res.json({success: 0, error: 1, msg:'MySQL loginUser query failed'}); // Error 1: MySQL error
-            res.send();
-            closeDBConnection(db);
-        }
-        else {
-            console.log('loginUser successful!');
-            res.json({success: 1, error: 0, user_id: user_id, token: token_id, date_created: timestamp, msg:'login successful'});
-            res.send();
+            if (err) {
+                console.log('loginUser ' + err);
+                res.status(500).json({error:'There was an error connecting to the database'}); // MySQL error
+                corelib.closeDBConnection(db);
+            }
+            else {
+                console.log('loginUser successful!');
+                res.status(200).json({user_id: user_id, token: token_id, date_created: timestamp, message:'login successful'});
 
-            // disconnect from database
-            closeDBConnection(db);
-        }
-    });
-}
+                // disconnect from database
+                corelib.closeDBConnection(db);
+            }
+        });
+    }
 
-// close database connection after success
-function closeDBConnection(db) {
-    db.end();
-}
+    // begin login process
+    verifyUser();
+};
 
 /***************************************************************************************/
 /* REQUEST HANDLING                                                                    */
@@ -191,12 +142,22 @@ router.post('/', function(req, res) {
 
     if (allValid){
         // connect to database and begin login process
-        openDBConnection(res,email,password);
+        var params = {'email': email, 'password': password};
+        corelib.openDBConnection(res,cb,params);
     }
     else {
+        var emsg = 'Invalid ';
+        if (tests[0] == false) {
+            console.log('Validation Error: invalid password. Must be 6 characters long with 1 number, 1 upper case and 1 lowercase letter.')
+            emsg = emsg + 'password, ';
+        }
+        if (tests[1] == false) {
+            console.log('Validation Error: invalid email.')
+            emsg = emsg + 'email';
+        }
+
         console.log('Validation Error: email or password of invalid format');
-        res.json({success: 0, error: 2, msg:'Invalid email or password'});
-        res.send();
+        res.status(500).json({error: emsg});
     }
 });
 
