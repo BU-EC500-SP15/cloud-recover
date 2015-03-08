@@ -12,11 +12,16 @@ var bl = require('bl');
 var corelib = require('../lib/core');
 var router = express.Router();
 
+// Response Error Codes:
+// --------------------
+// 1 = System Error (MySQL query error, database connection error, etc.)
+// 2 = User Error (invalid user credentials, user already exists, etc.)
+
 /***************************************************************************************/
 /* FUNCTION DEFINITIONS                                                                */
 /***************************************************************************************/
 
-// connect to MySQL Database using meta-data password
+// connect to MySQL Database using user-data password
 function openDBConnection(res,username,email,password) {
     
     // Amazon RDS host address
@@ -30,7 +35,7 @@ function openDBConnection(res,username,email,password) {
 
             if (err) {
                 console.error('There was an error getting db password: ' + err);
-                res.json({success: 0, error: 1, msg:'Failed to obtain database password'});
+                res.json({success: 0, error: 1, msg:'Failed to obtain database password'}); // Error 1: MySQL error
                 res.send();
             }
             else {
@@ -62,6 +67,7 @@ function checkUserExistence(res,db,username,email,password) {
             console.log('checkUserExistence ' + err);
             res.json({success: 0, error: 1, msg:'MySQL checkUserExistence query failed'}); // Error 1: MySQL error
             res.send();
+            closeDBConnection(db);
         }
         else {
             if (results[0] == null) {
@@ -72,6 +78,7 @@ function checkUserExistence(res,db,username,email,password) {
                 console.log('Error: User already exists');
                 res.json({success: 0, error: 2, msg:'User with that email aleady exists'}); // Error 2: User already exists
                 res.send();
+                closeDBConnection(db);
             }
         }
     });
@@ -105,6 +112,7 @@ function registerNewUser(res,db,username,email,password) {
             console.log('registerNewUser ' + err);
             res.json({success: 0, error: 1, msg:'MySQL registerNewUser query failed'}); // Error 1: MySQL error
             res.send();
+            closeDBConnection(db);
         }
         else {
             console.log('registerNewUser successful!');
@@ -161,7 +169,7 @@ router.post('/', function(req,res) {
         if (tests[2] == false)
             console.log('Validation Error: invalid email.')
 
-        res.json({success: 0, error: 3, msg:'Invalid username, password, or email'}); // Error 3: invalid username, password, or email
+        res.json({success: 0, error: 2, msg:'Invalid username, password, or email'}); // Error 2: invalid username, password, or email
         res.send();
     }
 });

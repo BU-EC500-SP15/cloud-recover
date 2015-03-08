@@ -1,120 +1,174 @@
-// ReClo: user_authentication
-// --------------------------
+// ReClo: /ua/login
+// ----------------
 // API Login Script
-// v1.0.0
-// Konstantino Sparakis
-// 2-25-2015
+// v2.0.0
+// Carlton Duffett
+// 3-7-2015
 
 var express = require('express');
+var mysql = require('mysql');
+var http = require('http');
+var bl = require('bl');
+var corelib = require('../lib/core');
 var router = express.Router();
-var corelib = require('../lib/core.js');
 
-// connect to AWS DynamoDB
-var AWS = require('aws-sdk');
-AWS.config.region = 'us-west-2';
-var db = new AWS.DynamoDB();
+// Response Error Codes:
+// --------------------
+// 1 = System Error (MySQL query error, database connection error, etc.)
+// 2 = User Error (invalid user credentials, user not found, etc.)
 
-/* Login user and return session token */
+/***************************************************************************************/
+/* FUNCTION DEFINITIONS                                                                */
+/***************************************************************************************/
+
+// connect to MySQL Database using user-data password
+function openDBConnection(res,email,password) {
+    
+    // Amazon RDS host address
+    var host = corelib.getMySQLHost().toString();
+    var url = "http://169.254.169.254/latest/user-data";
+
+    // get password securely
+    http.get(url, function handleResponse(pwres){
+
+        pwres.pipe(bl(function(err,data){
+
+            if (err) {
+                console.error('There was an error getting db password: ' + err);
+                res.json({success: 0, error: 1, msg:'Failed to obtain database password'}); // Error 1: MySQL Error
+                res.send();
+            }
+            else {
+                var pw = data.toString().slice(5);
+
+                // connect to ReClo databse
+                var db = mysql.createConnection({
+                    host     : host,
+                    port     : '3306',
+                    user     : 'reclo',
+                    password : pw,
+                    database : 'reclodb',
+                });
+                db.connect();
+
+                // proceed with user verification
+                verifyUser(res,db,email,password);
+            }
+        }));
+    });
+}
+
+// verify user in database
+function verifyUser(res,db,email,password) {
+
+    // query database for user
+    var qry = "SELECT * FROM reclodb.users WHERE email = ? AND user_status = 'A'";
+    db.query(qry,[email],function(err,results){
+
+        if (err) {
+            console.log('verifyUser ' + err);
+            res.json({success: 0, error: 1, msg:'MySQL verifyUser query failed'}); // Error 1: MySQL error
+            res.send();
+            closeDBConnection(db);
+        }
+        else {
+            if (results[0] == null) {
+                // user not found
+                console.log('Error: User not found');
+                res.json({success: 0, error: 2, msg:'User not found'}); // Error 2: User not found
+                res.send();
+                closeDBConnection(db);
+            }
+            else {
+                var hash = results[0].hash;
+
+                // check that passwords match
+                if (corelib.checkPasswordHash(password,hash)){
+                    // proceed with login
+                    var user_id = results[0].user_id;
+                    loginUser(res,db,user_id);
+                }
+                else {
+                    console.log('Error: Password does not match');
+                    res.json({success: 0, error: 2, msg:'Password does not match'}); // Error 2: Password does not match
+                    res.send();
+                    closeDBConnection(db);
+                }
+            }
+        }
+    });
+}
+
+function loginUser(res,db,user_id) {
+
+    // generate token, timestamp
+    var token_id = corelib.createToken();
+    var timestamp = corelib.createTimestamp();
+
+    // add token to token table
+    var post = {token_id: token_id, 
+                user_id: user_id,
+                date_created: timestamp,
+                token_status: 'A',
+            };
+    var qry = "INSERT INTO reclodb.tokens SET ?";
+    db.query(qry,post,function(err,results){
+
+        if (err) {
+            console.log('loginUser ' + err);
+            res.json({success: 0, error: 1, msg:'MySQL loginUser query failed'}); // Error 1: MySQL error
+            res.send();
+            closeDBConnection();
+        }
+        else {
+            console.log('loginUser successful!');
+            res.json({success: 1, error: 0, user_id: user_id, token: token_id, date_created: timestamp, msg:'login successful'});
+            res.send();
+
+            // disconnect from database
+            closeDBConnection(db);
+        }
+    });
+}
+
+// close database connection after success
+function closeDBConnection(db) {
+    db.end();
+}
+
+/***************************************************************************************/
+/* REQUEST HANDLING                                                                    */
+/***************************************************************************************/
+
 router.post('/', function(req, res) {
 
     // process request
     var email = req.body.email;
     var password = req.body.password;
 
-    var params = {
-        TableName : 'users',
-        IndexName: "email-index",
-        AttributesToGet: [
-            "user_id",
-            "hash", 
-            "user_status"
-            ],
-        KeyConditions : { 
-            "email" : {
-            "AttributeValueList" : [ 
-                {"S" :  email}
-                ],
-            "ComparisonOperator" : "EQ",
-            }
+    // validate form information
+    var tests = [];
+    tests[0] = corelib.validatePassword(password);
+    tests[1] = corelib.validateEmail(email);
+
+    var allValid = true;
+
+    for (i = 0; i < tests.length; i++){
+        if (tests[i] == false){
+            allValid = false;
+            break;
         }
     }
 
-    // query DynamoDB for user email and password
-    db.query(params, function(err, data) {
-        if (err) {
-            console.log('Query Error: ' + err); // an error occurred
-            res.json({success:0, error:1, msg:"DDB query error"});
-            res.send();
-        } 
-        else {
-
-            // user exists
-            if (data.Count > 0) {
-
-                //check that password matches hash
-                var uuid = data.Items[0].user_id['S'];
-                var hash = data.Items[0].hash['S'];
-                var userStatus= data.Items[0].user_status['S'];
-
-
-                if(corelib.checkPasswordHash(hash, password) && userStatus == "A")
-                {
-                    loginUser(uuid, res);
-                }
-                else
-                {
-                    var err_msg = '';
-
-                    if (userStatus != "A")
-                        err_msg = 'Authentication Error: user inactive.';
-                    else
-                        err_msg = 'Authentication Error: password invalid.';
-
-                    console.log(err_msg);
-                    res.json({success:0, error:1, msg:err_msg});
-                    res.send()
-                }
-            }
-            else {
-                console.log('Authentication Error: user does not exist');
-                res.json({success:0, error:1,msg:'Authentication Error: user does not exist'});
-            }
-        }// if (err)
-    });
+    if (allValid){
+        // connect to database and begin login process
+        openDBConnection(res,email,password);
+    }
+    else {
+        console.log('Validation Error: email or password of invalid format');
+        res.json({success: 0, error: 2, msg:'Invalid email or password'});
+        res.send();
+    }
 });
-
-// login user and return session token
-function loginUser(uuid, res) {
-
-    //generate token
-    var token_id = corelib.createToken();
-    var timestamp = corelib.createTimestamp();
-
-    var params = {
-        TableName: "tokens",
-        Item: {
-            "token_id": {"S": token_id},
-            "token_status": {"S": "A"},
-            "user_id": {"S": uuid},
-            "date_created": {"S": timestamp}
-        },
-    };
-
-    db.putItem(params, function(err, data) {
-
-        if (err) {
-            // put failed, data is null
-            console.log('putItem Error: ' + err + ', ' + err.stack);
-            res.json({success:0, error:2, msg:"failed inserting token"});
-            res.send();
-        }
-        else {
-            // put successful, err is null
-            console.log('putItem Successful: user logged in');
-            res.json({success:1, error:0, user_id: uuid, token:token_id, date_created: timestamp, msg:'login successful'});
-            res.send();
-        }
-    });
-}
 
 module.exports = router;

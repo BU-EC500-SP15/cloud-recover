@@ -46,27 +46,12 @@ module.exports = {
 	},
 
 	hashPassword: function(password) {
-		// hashes a user password using an bcrypt-nodejs
-		// returns:
-		//  hash if hash was successful
-		//  null if hash failed
-
-		var hash = bcrypt.hashSync(password);
-
-		if (hash)
-			return hash;
-		else {
-			console.log('Password hash failed.');
-			return null;
-		}
+		// hashes a user password using a bcrypt-nodejs
+		return bcrypt.hashSync(password);
 	},
 
-	checkPasswordHash: function(hash,password) {
+	checkPasswordHash: function(password,hash) {
 		// compares a user password to a generated hash
-		// returns:
-		//  true if password matches hash
-		//  false if password does not match hash
-
 		return bcrypt.compareSync(password,hash);
 	},
 
