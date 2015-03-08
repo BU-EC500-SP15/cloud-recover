@@ -74,7 +74,6 @@ app.use(function(err, req, res, next) {
     });
 });
 
-app.listen(app.get('port'));
 console.log('user_authentication server running!');
 console.log('Listening on port: ' + app.get('port'));
 
