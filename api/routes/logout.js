@@ -83,6 +83,11 @@ function deactivateToken(res,db,token) {
     });
 }
 
+// close database connection after success
+function closeDBConnection(db) {
+    db.end();
+}
+
 /***************************************************************************************/
 /* REQUEST HANDLING                                                                    */
 /***************************************************************************************/
