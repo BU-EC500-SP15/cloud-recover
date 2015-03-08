@@ -41,7 +41,7 @@ function openDBConnection(res,username,email,password) {
                     host     : host,
                     user     : 'reclo',
                     password : pw,
-                    database: 'reclodb',
+                    database : 'reclodb',
                 });
                 db.connect();
 
