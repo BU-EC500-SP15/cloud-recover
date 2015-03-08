@@ -113,7 +113,7 @@ function checkUserLoginStatus(res,db,user_id) {
         }
         else {
 
-            if (results[0].token_id == null) {
+            if (results[0] == null) {
                 // user not already logged in, okay to proceed
                 loginUser(res,db,user_id);
             }
