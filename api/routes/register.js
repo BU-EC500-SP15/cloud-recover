@@ -35,10 +35,12 @@ function openDBConnection(res,username,email,password) {
             }
             else {
                 var pw = data.toString().slice(5);
+                console.log('Password is: ' + pw);
 
                 // connect to ReClo databse
                 var db = mysql.createConnection({
                     host     : host,
+                    port     : '3306',
                     user     : 'reclo',
                     password : pw,
                     database : 'reclodb',

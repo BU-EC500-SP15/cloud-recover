@@ -20,7 +20,7 @@ var register = require('./routes/register');
 var app = express();
 
 // set port to listen on
-app.set('port',443);
+app.set('port',3000);
 
 // currently in development mode
 app.set('env','development');
