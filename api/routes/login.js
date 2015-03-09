@@ -18,7 +18,7 @@ var router = express.Router();
 var cb = function login(res,db,params) {
 
     // verify user in database
-    function verifyUser() {
+    function verifyUser(res,db,params) {
 
         // query database for user
         var qry = "SELECT * FROM reclodb.users WHERE email = ? AND user_status = 'A'";
@@ -42,8 +42,8 @@ var cb = function login(res,db,params) {
                     // check that passwords match
                     if (corelib.checkPasswordHash(params.password,hash)){
                         // proceed with login
-                        var user_id = results[0].user_id;
-                        checkUserLoginStatus(user_id);
+                        params.user_id = results[0].user_id;
+                        checkUserLoginStatus(res,db,params);
                     }
                     else {
                         console.log('Error: Password does not match');
@@ -55,11 +55,11 @@ var cb = function login(res,db,params) {
         });
     }
 
-    function checkUserLoginStatus(user_id) {
+    function checkUserLoginStatus(res,db,params) {
 
         // verify that user is not already logged in
         var qry = "SELECT token_id FROM reclodb.tokens WHERE user_id = ? AND token_status = 'A'";
-        db.query(qry,[user_id],function(err,results){
+        db.query(qry,[params.user_id],function(err,results){
 
             if (err) {
                 console.log('loginUser ' + err);
@@ -70,7 +70,7 @@ var cb = function login(res,db,params) {
 
                 if (results[0] == null) {
                     // user not already logged in, okay to proceed
-                    createToken(user_id);
+                    createToken(res,db,params);
                 }
                 else {
                     // user already logged in!
@@ -82,7 +82,7 @@ var cb = function login(res,db,params) {
         });
     }
 
-    function createToken(user_id) {
+    function createToken(res,db,params) {
 
         // generate token, timestamp
         var token_id = corelib.createToken();
@@ -113,7 +113,7 @@ var cb = function login(res,db,params) {
     }
 
     // begin login process
-    verifyUser();
+    verifyUser(res,db,params);
 };
 
 /***************************************************************************************/

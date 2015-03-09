@@ -15,10 +15,10 @@ var router = express.Router();
 /* FUNCTION DEFINITIONS                                                                */
 /***************************************************************************************/
 
-var cb = function registerNewUser(res,db,params){
+var cb = function registerNewUser(res,db,params) {
 
     // check that user does not already exist
-    function checkUserExistence() {
+    function checkUserExistence(res,db,params) {
 
         var qry = "SELECT email FROM reclodb.users WHERE email = ? AND user_status = 'A'"
         db.query(qry,[params.email],function(err,results){
@@ -31,7 +31,7 @@ var cb = function registerNewUser(res,db,params){
             else {
                 if (results[0] == null) {
                     // email not found, OK to create new user
-                    registerNewUser();
+                    insertNewUser(res,db,params);
                 }
                 else {
                     console.log('Error: User already exists');
@@ -43,7 +43,7 @@ var cb = function registerNewUser(res,db,params){
     }
 
     // insert user into database
-    function insertNewUser() {
+    function insertNewUser(res,db,params) {
 
         // create GUID for new user
         var uuid = corelib.generateUUID();
