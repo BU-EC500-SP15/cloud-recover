@@ -82,7 +82,7 @@ var cb = function registerNewUser(res,db,params) {
     }
 
     // begin registration process
-    checkUserExistence();
+    checkUserExistence(res,db,params);
 };
 
 
