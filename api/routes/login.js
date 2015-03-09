@@ -90,7 +90,7 @@ var cb = function login(res,db,params) {
 
         // add token to token table
         var post = {token_id: token_id, 
-                    user_id: user_id,
+                    user_id: params.user_id,
                     date_created: timestamp,
                     token_status: 'A',
                 };
@@ -104,7 +104,7 @@ var cb = function login(res,db,params) {
             }
             else {
                 console.log('loginUser successful!');
-                res.status(200).json({user_id: user_id, token: token_id, date_created: timestamp, message:'login successful'});
+                res.status(200).json({user_id: params.user_id, token: token_id, date_created: timestamp, message:'login successful'});
 
                 // disconnect from database
                 corelib.closeDBConnection(db);
