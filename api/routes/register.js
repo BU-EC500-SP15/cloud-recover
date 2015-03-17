@@ -1,98 +1,33 @@
-// ReClo: /register
-// ----------------
-// v2.0.1
-// Carlton Duffett
-// 3-7-2015
+/* ReClo API: /register/
+ * ---------------------
+ * v3.0
+ * Carlton Duffett
+ * 3-17-2015
+ */
 
 var express = require('express');
-var corelib = require('../lib/core');
+var DBConnection = require('../lib/DBConnection.js');
+var corelib = require('../lib/core.js');
 var router = express.Router();
 
-/***************************************************************************************/
-/* FUNCTION DEFINITIONS                                                                */
-/***************************************************************************************/
-
-var cb = function registerNewUser(res,db,params) {
-
-    // check that user does not already exist
-    function checkUserExistence(res,db,params) {
-
-        var qry = "SELECT email FROM reclodb.users WHERE email = ? AND user_status = 'A'"
-        db.query(qry,[params.email],function(err,results){
-
-            if (err) {
-                console.log('checkUserExistence ' + err);
-                res.status(500).json({error:'There was an error connecting to the database'}); // MySQL error
-                corelib.closeDBConnection(db);
-            }
-            else {
-                if (results[0] == null) {
-                    // email not found, OK to create new user
-                    insertNewUser(res,db,params);
-                }
-                else {
-                    console.log('Error: User already exists');
-                    res.status(500).json({error: 'User with that email aleady exists'}); // User already exists
-                    corelib.closeDBConnection(db);
-                }
-            }
-        });
-    }
-
-    // insert user into database
-    function insertNewUser(res,db,params) {
-
-        // create GUID for new user
-        var uuid = corelib.generateUUID();
-
-        // hash user password for storage
-        var hashed_password = corelib.hashPassword(params.password);
-
-        // current timestamp
-        var timestamp = corelib.createTimestamp();
-
-        // add new user to database
-        var post = {user_id: uuid, 
-                    username: params.username,
-                    email: params.email,
-                    hash: hashed_password,
-                    date_created: timestamp,
-                    user_status: 'A',
-                };
-        var qry = 'INSERT INTO reclodb.users SET ?';
-
-        db.query(qry,post,function(err,results){
-
-            if (err) {
-                console.log('registerNewUser ' + err);
-                res.status(500).json({error:'There was an error connecting to the database'}); // MySQL error
-                corelib.closeDBConnection(db);
-            }
-            else {
-                console.log('registerNewUser successful!');
-                res.status(200).json({message:'New user created'});
-
-                // disconnect from database
-                corelib.closeDBConnection(db);
-            }
-        });
-    }
-
-    // begin registration process
-    checkUserExistence(res,db,params);
-};
-
-
-/***************************************************************************************/
-/* REQUEST HANDLING                                                                    */
-/***************************************************************************************/
-
+/*
+ * API Call: POST /register/
+ *
+ * Req Params:  username, email, password
+ *
+ * Res Params:
+ * -----------
+ * On error:    error
+ * On success:  message 
+ *
+ * Validates provided username, email, and password, then
+ * Creates a new entry in the user database.
+ */
 router.post('/', function(req,res) {
   
-    // process request and validate fields
     var username = req.body.username;
     var password = req.body.password;
-    var email = req.body.email;
+    var email    = req.body.email;
     
     // validate form information
     var tests = [];
@@ -109,29 +44,84 @@ router.post('/', function(req,res) {
         }
     }
 
-    if (allValid) {
-        // connect to database and begin registration process
-        var params = {'username':username,'email':email,'password':password};
-        corelib.openDBConnection(res,cb,params);
+    if (!allValid) {
 
-    }
-    else {
         var emsg = 'Invalid ';
         if (tests[0] == false) {
-            console.log('Validation Error: invalid username. Must be at least 5 characters.');
             emsg = emsg + 'username, ';
         }
         if (tests[1] == false) {
-            console.log('Validation Error: invalid password. Must be 6 characters long with 1 number, 1 upper case and 1 lowercase letter.')
             emsg = emsg + 'password, ';
         }
         if (tests[2] == false) {
-            console.log('Validation Error: invalid email.')
             emsg = emsg + 'email';
         }
-
-        res.status(500).json({error: emsg}); // Error 2: invalid username, password, or email
+        console.log('Validation Error: ' + emsg);
+        res.status(500).json({error: emsg});
+        return;
     }
-});
+
+    // what DBConnection should do in the event of a connection error
+    function errCallback(err) {
+        console.log('There was an error getting db password: ' + err);
+        res.status(500).json({error: 'There was an error connecting to the database'});
+    }; // errCallback
+
+    // Open MySQL database connection
+    var db = new DBConnection(errCallback);
+    
+    // check that user does not already exist
+    var qry = "SELECT email FROM reclodb.users WHERE email = ? AND user_status = 'A'"
+    var params = [email];
+
+    function checkUserExistenceCallback(err,results) {
+
+        if (err) {
+            console.log('checkUserExistence ' + err);
+            res.status(500).json({error:'There was an error connecting to the database'}); // MySQL error
+            return;
+        }
+
+        if (results[0] != null) {
+            // user already exists with that email address
+            console.log('Error: User already exists');
+            res.status(500).json({error: 'User with that email aleady exists'}); // User already exists
+            return;
+        }
+
+        // insert new user into the database
+        var qry = 'INSERT INTO reclodb.users SET ?';
+
+        var uuid = corelib.generateUUID();
+        var hashed_password = corelib.hashPassword(password);
+        var timestamp = corelib.createTimestamp();
+
+        var params = {
+            'user_id'       : uuid, 
+            'username'      : username,
+            'email'         : email,
+            'hash'          : hashed_password,
+            'date_created'  : timestamp,
+            'user_status'   : 'A',
+        };
+
+        function registerUserCallback(err,results) {
+
+            if (err) {
+                console.log('registerUser ' + err);
+                res.status(500).json({error:'There was an error connecting to the database'}); // MySQL error
+                return;
+            }
+
+            console.log('registerUser successful!');
+            res.status(200).json({message:'New user created'});
+
+        }; // registerUserCallback
+        db.query(qry,params,registerUserCallback);
+
+    }; // checkUserExistenceCallback
+    db.query(qry,params,checkUserExistenceCallback);
+
+}); // router
 
 module.exports = router;
