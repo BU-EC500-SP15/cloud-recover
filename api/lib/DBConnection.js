@@ -4,6 +4,9 @@ var mysql = require('mysql');
 var http = require('http');
 var bl = require('bl');
 
+// MySQL database object
+var db;
+
 // Constructor
 function DBConnection(errCallback) {
 
@@ -25,14 +28,14 @@ function DBConnection(errCallback) {
 	        var pw = data.toString().slice(5);
 
 	        // connect to ReClo databse
-	        that.db = mysql.createConnection({
+	        db = mysql.createConnection({
 	            host     : that.host,
 	            port     : '3306',
 	            user     : 'reclo',
 	            password : pw,
 	            database : 'reclodb',
 	        });
-	        that.db.connect();
+	        db.connect();
 		}
 		response.pipe(bl(connectToDB));
     }
@@ -43,7 +46,7 @@ function DBConnection(errCallback) {
 DBConnection.prototype.query = function(qry,params,callback) {
 
 	// MySQL query
-	this.db.query(qry,params,callback);
+	db.query(qry,params,callback);
 }
 
 // Export the class
