@@ -5,9 +5,6 @@
 // 3-7-2015
 
 var express = require('express');
-var mysql = require('mysql');
-var http = require('http');
-var bl = require('bl');
 var corelib = require('../lib/core');
 var router = express.Router();
 
