@@ -1,4 +1,9 @@
-// MySQL Database Connection Class
+/* ReClo API: MySQL Database Connection
+ * ------------------------------------
+ * v3.3
+ * Carlton Duffett
+ * 3-17-2015
+ */
 
 var mysql = require('mysql');
 var http = require('http');

@@ -1,6 +1,6 @@
 /* ReClo API: /register/
  * ---------------------
- * v3.0
+ * v3.1
  * Carlton Duffett
  * 3-17-2015
  */
