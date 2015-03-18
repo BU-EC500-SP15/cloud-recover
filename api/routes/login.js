@@ -81,7 +81,7 @@ router.post('/', function(req, res) {
                 return;
             }
 
-            if (results[0] == null) {
+            if (results.length == 0) {
                 // user not found
                 console.log('Error: User not found');
                 res.status(500).json({error:'User not found'});
@@ -111,7 +111,7 @@ router.post('/', function(req, res) {
                     return;
                 }
 
-                if (results[0] != null) {
+                if (results.length != 0) {
                     // user already logged in!
                     console.log('Error: User aleady logged in');
                     res.status(500).json({error:'User already logged in'});

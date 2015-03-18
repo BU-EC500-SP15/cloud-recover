@@ -82,7 +82,7 @@ router.post('/', function(req,res) {
                 return;
             }
 
-            if (results[0] != null) {
+            if (results.length != 0) {
                 // user already exists with that email address
                 console.log('Error: User already exists');
                 res.status(500).json({error: 'User with that email aleady exists'}); // User already exists
