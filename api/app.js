@@ -1,9 +1,10 @@
-// ReClo: user_authentication
-// --------------------------
-// Express RestAPI middleware
-// v1.0.0
-// Carlton Duffett
-// 2-25-2015
+/* ReClo API: Application
+ * ----------------------
+ * v2.0
+ * Carlton Duffett
+ * Konstantino Sparakis
+ * 3-17-2015
+ */
 
 var express = require('express');
 var path = require('path');
