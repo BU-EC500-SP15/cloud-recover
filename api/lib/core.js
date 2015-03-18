@@ -6,8 +6,47 @@
  * 3-17-2015
  */
 
+var DBConnection = require('./DBConnection.js');
 var bcrypt = require('bcrypt-nodejs'); // hashing
 
+module.exports.validateToken = function(token,validationCallback) {
+
+    function checkForActiveToken(err) {
+
+        if (err) {
+            console.log('checkForActiveToken ' + err); // MySQL error
+            return;
+        }
+
+        // check if user-provided token is valid (active)
+        var qry = 'SELECT id FROM reclodb.tokens WHERE token_id = ?';
+        var params = [token];
+
+        function queryCallback(err,results) {
+
+            if (err) {
+                console.log('validateToken ' + err); // MySQL error
+                validationCallback(1);
+                return;
+            }
+
+            if (results[0] == null) {
+                console.log('Invalid token');
+                validationCallback(1);
+                return;
+            }
+
+            console.log('Valid token');
+            validationCallback(0);
+
+        } // validationCallback
+        db.query(qry,params,queryCallback);
+
+    }; // checkForActiveToken
+
+    var db = new DBConnection();
+    db.connect(checkForActiveToken.bind(db));
+}
 
 module.exports.createTimestamp = function() {
 	// creates a standard UTC timestamp string
@@ -16,14 +55,14 @@ module.exports.createTimestamp = function() {
 };
 
 module.exports.createToken = function() {
-	// creates a unique token 
+	// creates a unique token
     var d = new Date().getTime();
     var token = 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
         var r = (d + Math.random()*16)%16 | 0;
         d = Math.floor(d/16);
         return (c=='x' ? r : (r&0x3|0x8)).toString(16);
     });
-	return token;		
+	return token;
 };
 
 module.exports.generateUUID = function() {
