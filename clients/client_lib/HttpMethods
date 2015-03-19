@@ -1,0 +1,34 @@
+using System;
+using System.Collections.Specialized;
+using System.Collections.Generic;
+using System.Net.Http;
+
+
+
+// command for compiling with MONO 
+//  mcs /reference:System.ServiceModel.Web.dll /reference:System.Net.Http /reference:System.Runtime.Serialization *
+
+public static class HttpMethods
+{
+    private static string urlHead = "http://52.11.1.237:3000/";
+
+/*
+        public static void httpPost(List<KeyValuePair<string, int>> list, string url, Action<string> callBack)
+        {
+
+                using(var client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri(urlHead);
+
+                 var content = new FormUrlEncodedContent(new[] 
+                    {
+                        list
+                    });
+                    var result = client.PostAsync(url, content).Result;
+                    string resultContent = result.Content.ReadAsStringAsync().Result;
+                    Console.WriteLine(resultContent);
+                    callBack(resultContent);
+                }
+        }
+*/
+}
