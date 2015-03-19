@@ -10,6 +10,9 @@ var DBConnection = require('../lib/DBConnection.js');
 var corelib = require('../lib/core.js');
 var router = express.Router();
 
+var AWS = require('aws-sdk');
+AWS.config.region = 'us-west-2';
+
 /*
  * API Call: POST /register/
  *
@@ -21,7 +24,10 @@ var router = express.Router();
  * On success:  message
  *
  * Validates provided username, email, and password, then
- * Creates a new entry in the user database.
+ * creates a new entry in the user database. Also creates
+ * a new folder in the reclo-client-backups bucket to hold
+ * the user's backups. This folder has the same name as the
+ * user's GUID.
  */
 router.post('/', function(req,res) {
 
@@ -92,12 +98,12 @@ router.post('/', function(req,res) {
             // insert new user into the database
             var qry = 'INSERT INTO reclodb.users SET ?';
 
-            var uuid = corelib.generateUUID();
+            var user_id = corelib.generateUUID();
             var hashed_password = corelib.hashPassword(password);
             var timestamp = corelib.createTimestamp();
 
             var params = {
-                'user_id'       : uuid,
+                'user_id'       : user_id,
                 'username'      : username,
                 'email'         : email,
                 'hash'          : hashed_password,
@@ -114,7 +120,26 @@ router.post('/', function(req,res) {
                 }
 
                 console.log('registerUser successful!');
-                res.status(200).json({message:'New user created'});
+
+                // create new directory in S3 reclo-client-backups bucket
+                var bucket = 'reclo-client-backups/' + user_id + '/';
+                var params = {
+                    Bucket: bucket,
+                };
+                var s3 = new AWS.S3();
+
+                function createBucketCallback(err,data) {
+
+                    if (err) {
+                        console.log('createBucket Error: ' + err);
+                        res.status(200).json({message: 'New user created. Failed to create S3 bucket.'});
+                        return;
+                    }
+                    console.log('Bucket created for user ' + user_id);
+                    res.status(200).json({message:'New user created. S3 Bucket provisioned'});
+
+                };// createBucketCallback
+                s3.createBucket(params,createBucketCallback);
 
             }; // registerUserCallback
             db.query(qry,params,registerUserCallback);
