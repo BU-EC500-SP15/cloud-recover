@@ -7,7 +7,8 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Json;
+using System.ServiceModel.Web;
+using System.Runtime.Serialization.Json;
 
   public static class HttpSocket
   {
@@ -119,7 +120,6 @@ using System.Json;
     /// <typeparam name="T"></typeparam>
     /// <param name="stream">A Stream. Typically the ResponseStream</param>
     /// <returns>An instance of an object of type T</returns>
-    /*
     static T DeSerializeToJson<T>(Stream stream)
     {
       using (stream)
@@ -128,7 +128,7 @@ using System.Json;
         return (T)deserializer.ReadObject(stream);
       }
     }
-*/
+
     /// <summary>
     /// This method does an Http POST sending any post parameters to the url provided
     /// </summary>
@@ -139,12 +139,14 @@ using System.Json;
     /// <param name="contentType">The Content-Type of the Http request</param>
     public static void PostAsync(string url, NameValueCollection postParameters,
       Action<HttpWebRequestCallbackState> responseCallback, object state = null,
-      string contentType = "application/x-www-form-urlencoded")
+      string contentType = "x-www-form-urlencoded")
     {
+       Console.Write("Posting step 1...\n");
+         Console.Write(url+"\n");
       var httpWebRequest = CreateHttpWebRequest(url, "POST", contentType);
       var requestBytes = GetRequestBytes(postParameters);
       httpWebRequest.ContentLength = requestBytes.Length;
-
+       Console.Write("Posting step 2...\n");
       httpWebRequest.BeginGetRequestStream(BeginGetRequestStreamCallback,
         new HttpWebRequestAsyncState()
         {
@@ -153,6 +155,7 @@ using System.Json;
           ResponseCallback = responseCallback,  
           State = state
         });
+       Console.Write("Posting step 3...\n");
     }
 
     /// <summary>
@@ -181,6 +184,7 @@ using System.Json;
       Action<HttpWebRequestCallbackState> responseCallback, object state = null,
       string contentType = "application/x-www-form-urlencoded")
     {
+      Console.Write("Posting step 1...\n");
       var httpWebRequest = CreateHttpWebRequest(url, "POST", contentType);
       var requestBytes = GetRequestBytes(postParameters);
       httpWebRequest.ContentLength = requestBytes.Length;
@@ -197,21 +201,25 @@ using System.Json;
         httpWebRequest.EndGetRequestStream, asyncState, TaskCreationOptions.None)
         .ContinueWith<HttpWebRequestAsyncState>(task =>
         {
+           Console.Write("Posting step 6...\n");
           var asyncState2 = (HttpWebRequestAsyncState)task.AsyncState;
           using (var requestStream = task.Result)
           {
             requestStream.Write(asyncState2.RequestBytes, 0, asyncState2.RequestBytes.Length);
+             Console.Write("Posting step 3...\n");
           }          
           return asyncState2;
         })
         .ContinueWith(task =>
         {
+          Console.Write("Posting step 7...\n");
           var httpWebRequestAsyncState2 = (HttpWebRequestAsyncState)task.Result;
           var hwr2 = httpWebRequestAsyncState2.HttpWebRequest;
           Task.Factory.FromAsync<WebResponse>(hwr2.BeginGetResponse,
             hwr2.EndGetResponse, httpWebRequestAsyncState2, TaskCreationOptions.None)
             .ContinueWith(task2 =>
             {
+               Console.Write("Posting step 4...\n");
               WebResponse webResponse = null;
               Stream responseStream = null;
               try
@@ -223,6 +231,7 @@ using System.Json;
               }
               finally
               {
+                 Console.Write("Posting step 5...\n");
                 if (responseStream != null)
                   responseStream.Close();
                 if (webResponse != null)
@@ -230,6 +239,8 @@ using System.Json;
               }
             });
         });
+
+      Console.Write("Posting step 100...\n");
     }
 
     public static void GetAsyncTask(string url, Action<HttpWebRequestCallbackState> responseCallback,

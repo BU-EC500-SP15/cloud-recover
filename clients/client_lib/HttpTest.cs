@@ -1,19 +1,25 @@
 using System;
  
+
+// command for compiling with MONO 
+//  mcs /reference:System.ServiceModel.Web.dll /reference:System.Net.Http /reference:System.Runtime.Serialization *
+
 public class HttpTest
 {
     static public void Main ()
     {
-    	
-    	Action<HttpWebRequestCallbackState> test;
-        HttpWebRequestCallbackState hi = new HttpWebRequestCallbackState(null, null);
-        test = callBackTest(hi);
-         RecloApiCaller.loginUser("test@test.com", "123Test", test);
+    	 RecloApiCaller.loginUser("ksparakis@example.com", "Qwerty1",  (string hi) => callBackTest(hi), null);
+
 
     }
 
-    public static void callBackTest(HttpWebRequestCallbackState res)
+    public static void callBackTest(string res)
     {
     	//log that a response was recieved
+        Console.Write("Data Sent and response Recieved\n");
     }
+    
+
+
 }
+
