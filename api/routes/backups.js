@@ -54,7 +54,7 @@ router.get('/:user_id', function(req, res) {
             }
 
             // get list of backups for given user
-            var qry = "SELECT backup_id, file_size, file_name date_created FROM reclodb.backups WHERE user_id = ?";
+            var qry = "SELECT backup_id, file_size, file_name, date_created FROM reclodb.backups WHERE user_id = ?";
             var params = [user_id];
 
             function getBackupsListCallback(err,results) {
@@ -130,7 +130,7 @@ router.get('/:user_id/:backup_id', function(req,res) {
             }
 
             // get information for a single backup
-            var qry = "SELECT backup_id, file_size, file_name date_created FROM reclodb.backups WHERE user_id = ? AND backup_id = ?";
+            var qry = "SELECT backup_id, file_size, file_name, date_created FROM reclodb.backups WHERE user_id = ? AND backup_id = ?";
             var params = [user_id,backup_id];
 
             function getBackupCallback(err,results) {
