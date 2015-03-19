@@ -33,7 +33,7 @@ AWS.config.region = 'us-west-2';
 router.get('/:user_id', function(req, res) {
 
     var user_id = req.params.user_id;
-    var token = req.query.token;
+    var token   = req.query.token;
 
     // what to do after token validation
     function validationCallback(err) {
@@ -107,9 +107,9 @@ router.get('/:user_id', function(req, res) {
  */
 router.get('/:user_id/:backup_id', function(req,res) {
 
-    var user_id = req.params.user_id;
-    var backup_id = req.params.backup_id;
-    var token = req.query.token;
+    var user_id     = req.params.user_id;
+    var backup_id   = req.params.backup_id;
+    var token       = req.query.token;
 
     // what to do after token validation
     function validationCallback(err) {
@@ -185,12 +185,18 @@ router.get('/:user_id/:backup_id', function(req,res) {
  */
  router.post('/uploads/:user_id', function(req,res) {
 
-    var user_id = req.params.user_id;
-    var file_name = req.body.file_name;
-    var file_size = req.body.file_size;
-    var token = req.query.token;
+    var user_id     = req.params.user_id;
+    var file_name   = req.body.file_name;
+    var file_size   = req.body.file_size;
+    var token       = req.query.token;
 
     function validationCallback(err) {
+
+        if (err) {
+            console.log('Invalid token.');
+            res.status(500).json({error: 'Invalid token.'});
+            return;
+        }
 
         // connect to Security Token Service
         var sts = new AWS.STS();
@@ -205,14 +211,17 @@ router.get('/:user_id/:backup_id', function(req,res) {
                     "s3:*"
                   ],
                   "Resource": [
-                    "arn:aws:s3:::reclo-client-backups/" + user_id + '/'
+                    "arn:aws:s3:::reclo-client-backups/" + user_id + '/*'
                   ]
                 },
               ]
             };
 
+        // use random token for unique upload_id
+        var upload_id = corelib.createToken();
+
         var params = {
-            Name:               user_id.slice(0,18), // use first 18 chars of user-id
+            Name:               upload_id,
             DurationSeconds:    43200, // 12 hours
             Policy:             JSON.stringify(policy),
         };
@@ -243,6 +252,7 @@ router.get('/:user_id/:backup_id', function(req,res) {
                 var timestamp = corelib.createTimestamp();
 
                 var params = {
+                    'upload_id'         : upload_id,
                     'user_id'           : user_id,
                     'time_started'      : timestamp,
                     'time_completed'    : '',
@@ -260,7 +270,12 @@ router.get('/:user_id/:backup_id', function(req,res) {
                     }
 
                     console.log('Upload created');
-                    res.status(200).json({message: 'Obtained temporary credentials. Credentials expire in 12 hours.', credentials: credentials});
+
+                    res.status(200).json({
+                        message     : 'Obtained temporary credentials. Credentials expire in 12 hours.',
+                        upload_id   : upload_id,
+                        credentials : credentials
+                    });
 
                 } // createUploadCallback
                 db.query(qry,params,createUploadCallback);
@@ -279,49 +294,129 @@ router.get('/:user_id/:backup_id', function(req,res) {
 
  });
 
+
 /*
- * API Call: POST /backups/:user_id/:backup_id?token=
+ * API Call:    PUT /backups/uploads/:user_id?token=
+ * C# Call:     reclo.completeUpload(user_id,token,status)
  *
- * Req Params:  token, url
+ * Req Params:
+ * -----------
+ * Url query:   token
+ * Body:        upload_status
  *
  * Res Params:
  * -----------
  * On error:    error
- * On success:  message backups[backup_id,size,date_created]
+ * On success:  message
  *
- * Creates a new backup in S3 and a new entry in the database.
- * User must provide an active session token and a url to the location
- * of the backup on their local file system. Returns information
- * on the backup if successful.
+ * Updates the upload_status to either 'S' for successful
+ * or 'F' for failed. Calling completeUpload concludes the
+ * upload process for the given file.
  */
-router.post('/:user_id/:backup_id', function(req, res) {
 
-    var user_id = req.params.user_id;
-    var backup_id = req.params.backup_id;
+router.put('/uploads/:user_id/:upload_id', function(req, res) {
+
+    var user_id         = req.params.user_id;
+    var upload_id       = req.params.upload_id;
+    var upload_status   = req.body.upload_status;
+    var file_name       = req.body.file_name;
+    var file_size       = req.body.file_size;
+    var token           = req.query.token;
+
+    function validationCallback(err) {
+
+        if (err) {
+            console.log('Invalid token.');
+            res.status(500).json({error: 'Invalid token.'});
+            return;
+        }
+
+        // what DBConnection should do after connection is established
+        function connectionCallback(err) {
+
+            if (err) {
+                console.log('There was an error getting db password: ' + err);
+                res.status(500).json({error: 'There was an error connecting to the database'});
+                return;
+            }
+
+            // get information for a single backup
+            var qry = "UPDATE reclodb.uploads SET upload_status = ?, time_completed = ?"
+                        + " WHERE upload_id = ?";
+
+            var time_completed = corelib.createTimestamp();
+            var params = [upload_status,time_completed,upload_id];
+
+            function completeUploadCallback(err,results) {
+
+                if (err) {
+                    console.log('completeUpload ' + err);
+                    res.status(500).json({error: 'Failed to complete upload'}); // MySQL error
+                    return;
+                }
+
+                if (results.length == 0) {
+                    console.log('No upload with id = ' + upload_id + ' found');
+                    res.status(500).json({error: 'No upload found'}); // MySQL error
+                    return;
+                }
+
+                console.log('completeUpload successful.');
+
+                // add new backup to backups table if upload_status = 'S'
+                if (upload_status == 'S') {
+
+                    // backup upload was successful, create new backup entry
+                    var qry = "INSERT INTO reclodb.backups SET ?";
+
+                    var backup_id = corelib.createToken();
+                    var timestamp = corelib.createTimestamp();
+
+                    var params = {
+                        'backup_id'     : backup_id,
+                        'user_id'       : user_id,
+                        'file_name'     : file_name,
+                        'file_size'     : file_size,
+                        'date_created'  : timestamp,
+                        'backup_status' : 'A',
+                    };
+
+                    function createBackupCallback(err,results) {
+
+                        if (err) {
+                            console.log('createBackup ' + err);
+                            res.status(500).json({error:'There was an error connecting to the database'}); // MySQL error
+                            return;
+                        }
+
+                        console.log('Backup upload successful. File: ' + file_name);
+                        res.status(200).json({message: 'Backup created'});
+
+                    } // createBackupCallback
+                    db.query(qry,params,createBackupCallback);
+
+                }
+                else {
+
+                    // backup upload was unsuccessful
+                    console.log('Backup upload failed. File: ' + file_name);
+                    res.status(204).send(); // 204, no content
+                }
+
+            }; // completeUploadCallback
+            db.query(qry,params,completeUploadCallback);
+
+        }; // connectionCallback
+
+        // Open MySQL database connection
+        var db = new DBConnection();
+        db.connect(connectionCallback.bind(db));
+
+    } // validationCallback
+    corelib.validateToken(token,validationCallback);
 
 });
 
-/*
- * API Call: PUT /backups/:user_id/:backup_id
- *
- * Req Params:  token, url
- *
- * Res Params:
- * -----------
- * On error:    error
- * On success:  message backups[backup_id,size,date_created]
- *
- * Updates a backup record in the database. Used when a backup
- * changes location on the user's local file system. Returns
- * updated information on the backup if successful. User must
- * provide an active session token.
- */
-router.put('/:user_id/:backup_id', function(req,res) {
-
-    var user_id = req.params.user_id;
-    var backup_id = req.params.backup_id;
-
-});
 
 /*
  * API Call: DELETE /backups/:user_id/:backup_id
