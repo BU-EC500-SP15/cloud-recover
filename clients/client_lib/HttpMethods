@@ -12,23 +12,36 @@ public static class HttpMethods
 {
     private static string urlHead = "http://52.11.1.237:3000/";
 
-/*
-        public static void httpPost(List<KeyValuePair<string, int>> list, string url, Action<string> callBack)
-        {
 
+        public static void httpPOST(IEnumerable<KeyValuePair<string, string>> nameValueCollection, string url, Action<string> callBack)
+        {   
+                Console.Write("Sending Http POST to "+urlHead+url+"...\n");
                 using(var client = new HttpClient())
                 {
                     client.BaseAddress = new Uri(urlHead);
 
-                 var content = new FormUrlEncodedContent(new[] 
-                    {
-                        list
-                    });
+                    var content = new FormUrlEncodedContent(nameValueCollection);
                     var result = client.PostAsync(url, content).Result;
                     string resultContent = result.Content.ReadAsStringAsync().Result;
                     Console.WriteLine(resultContent);
                     callBack(resultContent);
                 }
         }
-*/
+
+
+
+        public static void httpGET(string url, Action<string> callBack)
+        {   
+                Console.Write("Sending Http GET to "+urlHead+url+"...\n");
+                using(var client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri(urlHead);
+
+                    var result = client.GetAsync(url).Result;
+                    string resultContent = result.Content.ReadAsStringAsync().Result;
+                    Console.WriteLine(resultContent);
+                    callBack(resultContent);
+                }
+        }
+
 }
