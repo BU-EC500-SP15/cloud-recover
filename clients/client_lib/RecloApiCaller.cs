@@ -7,9 +7,6 @@ using System.Net.Http;
 //  mcs /reference:System.ServiceModel.Web.dll /reference:System.Net.Http /reference:System.Runtime.Serialization *
 public class RecloApiCaller
 {
-    
-    private static string urlHead = "http://52.11.1.237:3000/";
-    //private static string urlHead = "http://stutorapi.sparakis.com";
     private static string loginUrl = "login";
     private static string registerUrl = "register";
     private static string logoutUrl = "logout";
@@ -31,45 +28,16 @@ public class RecloApiCaller
 
     }
 
-/*
- * EXAMPLE USING HTTPSCOKET.cs which doesnt work
- 
-    public static void registerUser(string email, string username, string password,
-                  Action<HttpWebRequestCallbackState> callBack , object state = null)
-    {
-        
-        NameValueCollection postParameters = new NameValueCollection();
-        postParameters.Add("email", email);
-        postParameters.Add("username", username);
-        postParameters.Add("password", password);
-    
-        HttpSocket.PostAsync(registerUrl, postParameters, callBack, state);
-    }
-    */
-    
-
-
-
     public static void loginUser(string email, string password,
                      Action<string> callBack , object state = null)
     {
-         Console.Write("login Initiated\n");
+         
     
-          using (var client = new HttpClient())
-        {
-            client.BaseAddress = new Uri(urlHead);
-            var content = new FormUrlEncodedContent(new[] 
-            {
-                new KeyValuePair<string, string>("email", email),
-                new KeyValuePair<string, string>("password", password)
-            });
+         IEnumerable<KeyValuePair<string, string>> nameValueCollection = new[]{
+        new KeyValuePair<string, string>("email", email),
+        new KeyValuePair<string, string>("password", password)};
 
-            var result = client.PostAsync("login", content).Result;
-            string resultContent = result.Content.ReadAsStringAsync().Result;
-            Console.WriteLine(resultContent);
-            callBack(resultContent);
-        }
-        
+        HttpMethods.httpPOST(nameValueCollection, loginUrl, callBack);
     	
     }
 
@@ -77,42 +45,26 @@ public class RecloApiCaller
 
     public static void registerUser(string email, string password, string username,  Action<string> callBack , object state = null)
     {
-           using (var client = new HttpClient())
-        {
-            client.BaseAddress = new Uri(urlHead);
-            var content = new FormUrlEncodedContent(new[] 
+              IEnumerable<KeyValuePair<string, string>> nameValueCollection = new[] 
             {
                 new KeyValuePair<string, string>("username", username),
                 new KeyValuePair<string, string>("email", email),
                 new KeyValuePair<string, string>("password", password)
+            };
 
-            });
-
-            var result = client.PostAsync("login", content).Result;
-            string resultContent = result.Content.ReadAsStringAsync().Result;
-            Console.WriteLine(resultContent);
-            callBack(resultContent);
-        }
-        
+            HttpMethods.httpPOST(nameValueCollection, registerUrl, callBack);
     }
 
 
     public static void logoutUser(string token,  Action<string> callBack , object state = null)
     {
-           using (var client = new HttpClient())
-        {
-            client.BaseAddress = new Uri(urlHead);
-            var content = new FormUrlEncodedContent(new[] 
+        IEnumerable<KeyValuePair<string, string>> nameValueCollection = new[] 
             {
                 new KeyValuePair<string, string>("token", token)
-            });
+            };
+            
+            HttpMethods.httpPOST(nameValueCollection, logoutUrl, callBack);
 
-            var result = client.PostAsync("login", content).Result;
-            string resultContent = result.Content.ReadAsStringAsync().Result;
-            Console.WriteLine(resultContent);
-            callBack(resultContent);
-        }
-        
     }
 
 
