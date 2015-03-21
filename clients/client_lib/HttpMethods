@@ -44,4 +44,35 @@ public static class HttpMethods
                 }
         }
 
+
+         public static void httpPUT(IEnumerable<KeyValuePair<string, string>> nameValueCollection, string url, Action<string> callBack)
+        {   
+                Console.Write("Sending Http PUT to "+urlHead+url+"...\n");
+                using(var client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri(urlHead);
+                    
+                    var content = new FormUrlEncodedContent(nameValueCollection);
+                    var result = client.PutAsync(url,content).Result;
+                    string resultContent = result.Content.ReadAsStringAsync().Result;
+                    Console.WriteLine(resultContent);
+                    callBack(resultContent);
+                }
+        }
+
+
+        public static void httpDELETE(string url, Action<string> callBack)
+        {   
+                Console.Write("Sending Http DELETE to "+urlHead+url+"...\n");
+                using(var client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri(urlHead);
+
+                    var result = client.DeleteAsync(url).Result;
+                    string resultContent = result.Content.ReadAsStringAsync().Result;
+                    Console.WriteLine(resultContent);
+                    callBack(resultContent);
+                }
+        }
+
 }
