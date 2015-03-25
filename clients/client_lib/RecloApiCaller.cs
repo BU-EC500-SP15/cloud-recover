@@ -10,6 +10,8 @@ public class RecloApiCaller
     private static string loginUrl = "login";
     private static string registerUrl = "register";
     private static string logoutUrl = "logout";
+    private static string backupsURL = "backups/";
+    private static string uploadsURL = "uploads/";
 
     /*
      * NOTE : all callback functons need to take as a parameter :
@@ -65,6 +67,46 @@ public class RecloApiCaller
             
             HttpMethods.httpPOST(nameValueCollection, logoutUrl, callBack);
 
+    }
+
+    public static void getBackupList(string userID, string token, string backupID Action<string> callBack)
+    {
+        string newURL = backupsURL+userID+"/"+backupID+"?token="+token;
+        HttpMethods.httpGET(newURL,callBack);
+    }
+
+    public static void getBackup(string userID,string token, Action<string> callBack)
+    {
+        string newURL = backupsURL+userID+"?token="+token;
+        HttpMethods.httpGET(newURL,callBack);
+    }
+
+
+     public static void authorizeUpload(string userID,string token,string fileName, string fileSize Action<string> callBack)
+    {
+        string newURL = backupsURL+uploadsURL+userID+"?token="+token;
+               IEnumerable<KeyValuePair<string, string>> nameValueCollection = new[] 
+            {
+                new KeyValuePair<string, string>("file_name", fileName),
+                new KeyValuePair<string, string>("file_size", fileSize),
+            };
+            
+            HttpMethods.httpPOST(nameValueCollection, newUrl, callBack);
+
+    }
+
+
+     public static void completeUpload(string userID,string token,string uploadStatus, string uploadID, Action<string> callBack)
+    {
+        //  .../backups/uploads/:user_id/:upload_id?token=
+        string newURL = backupsURL+uploadsURL+userID+"/"+uploadID"?token="+token;
+
+        IEnumerable<KeyValuePair<string, string>> nameValueCollection = new[] 
+            {
+                new KeyValuePair<string, string>("upload_status", uploadStatus)
+            };
+
+            HttpMethods.httpPUT(nameValueCollection, newUrl, callBack);
     }
 
 
