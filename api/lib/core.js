@@ -6,7 +6,7 @@
  * 3-17-2015
  */
 
-var DBConnection = require('./DBConnection.js');
+var DBConnection = require('./LOCALDBConnection.js');
 var bcrypt = require('bcrypt-nodejs'); // hashing
 
 module.exports.validateToken = function(token,validationCallback) {
