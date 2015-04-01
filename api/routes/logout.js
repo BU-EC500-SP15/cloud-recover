@@ -1,6 +1,6 @@
 /* ReClo API: /logout/
  * -------------------
- * v3.1
+ * v3.2
  * Carlton Duffett
  * 3-17-2015
  */
@@ -37,9 +37,8 @@ router.post('/', function(req, res) {
         }
 
         // invalidate token in Token table
-        var timestamp = corelib.createTimestamp();
-        var qry = "UPDATE reclodb.tokens SET token_status = 'D', date_deactivated = ? WHERE token_id = ?";
-        var params = [timestamp, token];
+        var qry = "UPDATE reclodb.tokens SET token_status = 'D', date_deactivated = NOW() WHERE token_id = ?";
+        var params = [token];
 
         function queryCallback(err,results) {
 

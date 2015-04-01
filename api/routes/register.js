@@ -1,6 +1,6 @@
 /* ReClo API: /register/
  * ---------------------
- * v3.1
+ * v3.2
  * Carlton Duffett
  * 3-17-2015
  */
@@ -96,18 +96,16 @@ router.post('/', function(req,res) {
             }
 
             // insert new user into the database
-            var qry = 'INSERT INTO reclodb.users SET ?';
+            var qry = 'INSERT INTO reclodb.users SET date_created = NOW(), ?';
 
             var user_id = corelib.generateUUID();
             var hashed_password = corelib.hashPassword(password);
-            var timestamp = corelib.createTimestamp();
 
             var params = {
                 'user_id'       : user_id,
                 'username'      : username,
                 'email'         : email,
                 'hash'          : hashed_password,
-                'date_created'  : timestamp,
                 'user_status'   : 'A',
             };
 

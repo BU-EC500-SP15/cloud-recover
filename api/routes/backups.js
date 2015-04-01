@@ -247,14 +247,11 @@ router.get('/:user_id/:backup_id', function(req,res) {
                     return;
                 }
 
-                var qry = 'INSERT INTO reclodb.uploads SET ?';
-
-                var timestamp = corelib.createTimestamp();
+                var qry = 'INSERT INTO reclodb.uploads SET time_started = NOW(), ?';
 
                 var params = {
                     'upload_id'         : upload_id,
                     'user_id'           : user_id,
-                    'time_started'      : timestamp,
                     'time_completed'    : '',
                     'upload_status'     : 'A',
                     'file_name'         : file_name,
@@ -339,11 +336,10 @@ router.put('/uploads/:user_id/:upload_id', function(req, res) {
             }
 
             // get information for a single backup
-            var qry = "UPDATE reclodb.uploads SET upload_status = ?, time_completed = ?"
+            var qry = "UPDATE reclodb.uploads SET upload_status = ?, time_completed = NOW()"
                         + " WHERE upload_id = ?";
 
-            var time_completed = corelib.createTimestamp();
-            var params = [upload_status,time_completed,upload_id];
+            var params = [upload_status,upload_id];
 
             function completeUploadCallback(err,results) {
 
@@ -380,17 +376,15 @@ router.put('/uploads/:user_id/:upload_id', function(req, res) {
                     if (upload_status == 'S') {
 
                         var backup_id = corelib.createToken();
-                        var timestamp = corelib.createTimestamp();
 
                         // backup upload was successful, create new backup entry
-                        var qry = "INSERT INTO reclodb.backups SET ?";
+                        var qry = "INSERT INTO reclodb.backups SET date_created = NOW(), ?";
 
                         var params = {
                             'backup_id'     : backup_id,
                             'user_id'       : user_id,
                             'file_name'     : file_name,
                             'file_size'     : file_size,
-                            'date_created'  : timestamp,
                             'backup_status' : 'A',
                         };
 

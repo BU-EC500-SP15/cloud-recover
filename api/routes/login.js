@@ -1,6 +1,6 @@
 /* ReClo API: /login/
  * ------------------
- * v3.1
+ * v3.2
  * Carlton Duffett
  * 3-17-2015
  */
@@ -18,7 +18,7 @@ var router = express.Router();
  * Res Params:
  * -----------
  * On error:    error
- * On success:  user_id, token, date_created, message
+ * On success:  user_id, token, message
  *
  * Validates user with MySQL database, checks if user is already logged in,
  * then creates a new session token.
@@ -119,15 +119,13 @@ router.post('/', function(req, res) {
                 }
 
                 // login user, add token to token table
-                var qry = "INSERT INTO reclodb.tokens SET ?";
+                var qry = "INSERT INTO reclodb.tokens SET date_created = NOW(), ?";
 
                 var token_id = corelib.createToken();
-                var timestamp = corelib.createTimestamp();
 
                 var params = {
                     'token_id'      : token_id,
                     'user_id'       : user_id,
-                    'date_created'  : timestamp,
                     'token_status'  : 'A',
                 };
 
@@ -139,7 +137,7 @@ router.post('/', function(req, res) {
                     }
 
                     console.log('Login successful');
-                    res.status(200).json({user_id: user_id, token: token_id, date_created: timestamp, message:'login successful'});
+                    res.status(200).json({user_id: user_id, token: token_id, message:'login successful'});
 
                 }; // createTokenCallback
                 db.query(qry,params,createTokenCallback);

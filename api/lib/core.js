@@ -1,6 +1,6 @@
 /* ReClo API: Core Functions
  * -------------------------
- * v2.0
+ * v2.1
  * Carlton Duffett
  * Konstantino Sparakis
  * 3-17-2015
@@ -49,9 +49,18 @@ module.exports.validateToken = function(token,validationCallback) {
 }
 
 module.exports.createTimestamp = function() {
-	// creates a standard UTC timestamp string
-	var d = new Date().toUTCString();
-	return d;
+	// creates a mysql formatted datetime string
+    function ISODateString(d) {
+      function pad(n) {return n<10 ? '0'+n : n}
+      return d.getUTCFullYear()+'-'
+          + pad(d.getUTCMonth()+1)+'-'
+          + pad(d.getUTCDate()) +' '
+          + pad(d.getUTCHours())+':'
+          + pad(d.getUTCMinutes())+':'
+          + pad(d.getUTCSeconds())
+    }
+	var d = new Date();
+	return ISODateString(d);
 };
 
 module.exports.createToken = function() {
@@ -101,8 +110,8 @@ module.exports.validatePassword = function(password) {
 };
 
 module.exports.validateUsername = function(username) {
-	// Username must be at least 5 characters long
-	if (username.length < 5)
+	// Username must be at least 5 characters long and no more than 32
+	if (username.length < 5 || username.length > 32)
 		return false;
 	return true;
 };
