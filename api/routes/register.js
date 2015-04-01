@@ -118,6 +118,7 @@ router.post('/', function(req,res) {
                 }
 
                 console.log('registerUser successful!');
+                db.disconnect();
 
                 // create new directory in S3 reclo-client-backups bucket
                 var bucket = 'reclo-client-backups/' + user_id + '/';

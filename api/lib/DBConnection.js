@@ -60,5 +60,10 @@ DBConnection.prototype.query = function(qry,params,callback) {
     this.db.query(qry,params,callback);
 }
 
+// Close MySQL connection
+DBConnection.prototype.disconnect = function() {
+    this.db.end();
+}
+
 // Export the class
 module.exports = DBConnection;

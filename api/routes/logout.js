@@ -50,6 +50,7 @@ router.post('/', function(req, res) {
 
             console.log('Logout successful');
             res.status(200).json({message: 'Logout successful'});
+            db.disconnect();
 
         }; // queryCallback
         db.query(qry,params,queryCallback);

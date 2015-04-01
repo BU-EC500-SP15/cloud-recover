@@ -74,6 +74,7 @@ router.get('/:user_id', function(req, res) {
                 // backups is an array of objects with fields backup_id, size, date_created
                 console.log(results.length + ' backups obtained for user ' + user_id);
                 res.status(200).json({message: 'Backups obtained successfully', backups: results});
+                db.disconnect();
 
             }; // getBackupsListCallback
             db.query(qry,params,getBackupsListCallback);
@@ -150,6 +151,7 @@ router.get('/:user_id/:backup_id', function(req,res) {
                 // backup is an object with fields backup_id, size, date_created
                 console.log(results.length + ' backups obtained for user ' + user_id);
                 res.status(200).json({message: 'Backup obtained successfully', backup: results});
+                db.disconnect();
 
             }; // getBackupCallback
             db.query(qry,params,getBackupCallback);
@@ -273,6 +275,8 @@ router.get('/:user_id/:backup_id', function(req,res) {
                         upload_id   : upload_id,
                         credentials : credentials
                     });
+
+                    db.disconnect();
 
                 } // createUploadCallback
                 db.query(qry,params,createUploadCallback);
@@ -398,6 +402,7 @@ router.put('/uploads/:user_id/:upload_id', function(req, res) {
 
                             console.log('Backup upload successful. File: ' + file_name);
                             res.status(200).json({message: 'Backup created'});
+                            db.disconnect();
 
                         } // createBackupCallback
                         db.query(qry,params,createBackupCallback);
@@ -406,6 +411,7 @@ router.put('/uploads/:user_id/:upload_id', function(req, res) {
                         // backup upload was unsuccessful
                         console.log('Backup upload confirmed failed. File: ' + file_name);
                         res.status(200).send({message: 'Backup upload confirmed failed'}); // no content
+                        db.disconnect();
                     }
                 } // getBackupInfoCallback
                 db.query(qry,params,getBackupInfoCallback);
@@ -501,6 +507,7 @@ router.delete('/:user_id/:backup_id', function(req,res) {
 
                     console.log('deleteBackup successful.');
                     res.status(200).json({message: 'Delete backup successful'});
+                    db.disconnect();
                 }
                 s3.deleteObject(params,deleteBackupCallback);
             }

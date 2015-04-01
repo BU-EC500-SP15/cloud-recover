@@ -138,6 +138,7 @@ router.post('/', function(req, res) {
 
                     console.log('Login successful');
                     res.status(200).json({user_id: user_id, token: token_id, message:'login successful'});
+                    db.disconnect();
 
                 }; // createTokenCallback
                 db.query(qry,params,createTokenCallback);
