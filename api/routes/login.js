@@ -69,6 +69,7 @@ router.post('/', function(req, res) {
         if (err) {
             console.log('There was an error getting db password: ' + err);
             res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
+            db.disconnect();
             return;
         }
 
@@ -81,6 +82,7 @@ router.post('/', function(req, res) {
             if (err) {
                 console.log('verifyUser ' + err);
                 res.status(500).json({error: 101, message: 'There was an error connecting to the database'}); // MySQL error
+                db.disconnect();
                 return;
             }
 
@@ -88,6 +90,7 @@ router.post('/', function(req, res) {
                 // user not found
                 console.log('Error: User not found');
                 res.status(500).json({error: 206, message:'User not found'});
+                db.disconnect();
                 return;
             }
 
@@ -98,6 +101,7 @@ router.post('/', function(req, res) {
                 // Password does not match
                 console.log('Error: Password does not match');
                 res.status(500).json({error: 207, message:'Password does not match'});
+                db.disconnect();
                 return;
             }
 
@@ -111,6 +115,7 @@ router.post('/', function(req, res) {
                 if (err) {
                     console.log('checkLoginStatus ' + err);
                     res.status(500).json({error: 101, message:'There was an error connecting to the database'}); // MySQL error
+                    db.disconnect();
                     return;
                 }
 
@@ -138,6 +143,7 @@ router.post('/', function(req, res) {
                     if (err) {
                         console.log('createToken' + err);
                         res.status(500).json({error: 101, message:'There was an error connecting to the database'}); // MySQL error
+                        db.disconnect();
                         return;
                     }
 
@@ -154,6 +160,7 @@ router.post('/', function(req, res) {
                             if (err) {
                                 console.log('deactivateToken ' + err);
                                 res.status(500).json({error: 211, message: 'Failed to deactivate session token'}); // MySQL error
+                                db.disconnect();
                                 return;
                             }
 

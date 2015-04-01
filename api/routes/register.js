@@ -77,6 +77,7 @@ router.post('/', function(req,res) {
         if (err) {
             console.log('There was an error getting db password: ' + err);
             res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
+            db.disconnect();
             return;
         }
 
@@ -89,6 +90,7 @@ router.post('/', function(req,res) {
             if (err) {
                 console.log('checkUserExistence ' + err);
                 res.status(500).json({error: 101, message:'There was an error connecting to the database'}); // MySQL error
+                db.disconnect();
                 return;
             }
 
@@ -96,6 +98,7 @@ router.post('/', function(req,res) {
                 // user already exists with that email address
                 console.log('Error: User already exists');
                 res.status(500).json({error: 201, message: 'User with that email aleady exists'}); // User already exists
+                db.disconnect();
                 return;
             }
 
@@ -118,11 +121,11 @@ router.post('/', function(req,res) {
                 if (err) {
                     console.log('registerUser ' + err);
                     res.status(500).json({error: 101, message:'There was an error connecting to the database'}); // MySQL error
+                    db.disconnect();
                     return;
                 }
 
                 console.log('registerUser successful!');
-                db.disconnect();
 
                 // create new directory in S3 reclo-client-backups bucket
                 var bucket = 'reclo-client-backups/' + user_id + '/';
@@ -136,10 +139,12 @@ router.post('/', function(req,res) {
                     if (err) {
                         console.log('createBucket Error: ' + err);
                         res.status(500).json({error: 205, message: 'New user created. Failed to create S3 bucket.'});
+                        db.disconnect();
                         return;
                     }
                     console.log('Bucket created for user ' + user_id);
                     res.status(200).json({message:'New user created. S3 Bucket provisioned'});
+                    db.disconnect();
 
                 };// createBucketCallback
                 s3.createBucket(params,createBucketCallback);
