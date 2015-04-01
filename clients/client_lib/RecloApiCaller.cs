@@ -31,7 +31,7 @@ public class RecloApiCaller
     }
 
     public static void loginUser(string email, string password,
-                     Action<string> callBack , object state = null)
+                     Action<string> callBack)
     {
          
     
