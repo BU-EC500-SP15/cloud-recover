@@ -52,18 +52,22 @@ router.post('/', function(req,res) {
 
     if (!allValid) {
 
+        var error = 0;
         var emsg = 'Invalid ';
         if (tests[0] == false) {
+            error = 202;
             emsg = emsg + 'username, ';
         }
         if (tests[1] == false) {
+            error = 203;
             emsg = emsg + 'password, ';
         }
         if (tests[2] == false) {
+            error = 204;
             emsg = emsg + 'email';
         }
         console.log('Validation Error: ' + emsg);
-        res.status(500).json({error: emsg});
+        res.status(500).json({error: error, message: emsg});
         return;
     }
 
@@ -72,7 +76,7 @@ router.post('/', function(req,res) {
 
         if (err) {
             console.log('There was an error getting db password: ' + err);
-            res.status(500).json({error: 'There was an error connecting to the database'});
+            res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
             return;
         }
 
@@ -84,14 +88,14 @@ router.post('/', function(req,res) {
 
             if (err) {
                 console.log('checkUserExistence ' + err);
-                res.status(500).json({error:'There was an error connecting to the database'}); // MySQL error
+                res.status(500).json({error: 101, message:'There was an error connecting to the database'}); // MySQL error
                 return;
             }
 
             if (results.length != 0) {
                 // user already exists with that email address
                 console.log('Error: User already exists');
-                res.status(500).json({error: 'User with that email aleady exists'}); // User already exists
+                res.status(500).json({error: 201, message: 'User with that email aleady exists'}); // User already exists
                 return;
             }
 
@@ -113,7 +117,7 @@ router.post('/', function(req,res) {
 
                 if (err) {
                     console.log('registerUser ' + err);
-                    res.status(500).json({error:'There was an error connecting to the database'}); // MySQL error
+                    res.status(500).json({error: 101, message:'There was an error connecting to the database'}); // MySQL error
                     return;
                 }
 
@@ -131,7 +135,7 @@ router.post('/', function(req,res) {
 
                     if (err) {
                         console.log('createBucket Error: ' + err);
-                        res.status(200).json({message: 'New user created. Failed to create S3 bucket.'});
+                        res.status(500).json({error: 205, message: 'New user created. Failed to create S3 bucket.'});
                         return;
                     }
                     console.log('Bucket created for user ' + user_id);

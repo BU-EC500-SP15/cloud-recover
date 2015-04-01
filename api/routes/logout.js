@@ -32,7 +32,7 @@ router.post('/', function(req, res) {
 
         if (err) {
             console.log('There was an error getting db password: ' + err);
-            res.status(500).json({error: 'There was an error connecting to the database'});
+            res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
             return;
         }
 
@@ -44,7 +44,7 @@ router.post('/', function(req, res) {
 
             if (err) {
                 console.log('deactivateToken ' + err);
-                res.status(500).json({error: 'Failed to deactivate session token'}); // MySQL error
+                res.status(500).json({error: 211, message: 'Failed to deactivate session token'}); // MySQL error
                 return;
             }
 

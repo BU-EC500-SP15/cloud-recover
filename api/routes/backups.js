@@ -40,7 +40,7 @@ router.get('/:user_id', function(req, res) {
 
         if (err) {
             console.log('Invalid token.');
-            res.status(500).json({error: 'Invalid token.'});
+            res.status(500).json({error: 102, message: 'Invalid token.'});
             return;
         }
 
@@ -49,7 +49,7 @@ router.get('/:user_id', function(req, res) {
 
             if (err) {
                 console.log('There was an error getting db password: ' + err);
-                res.status(500).json({error: 'There was an error connecting to the database'});
+                res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
                 return;
             }
 
@@ -61,13 +61,13 @@ router.get('/:user_id', function(req, res) {
 
                 if (err) {
                     console.log('getBackupsList ' + err);
-                    res.status(500).json({error: 'Failed to obtain list of backups'}); // MySQL error
+                    res.status(500).json({error: 301, message: 'Failed to obtain list of backups'}); // MySQL error
                     return;
                 }
 
                 if (results.length == 0) {
                     console.log('No backups found for user ' + user_id);
-                    res.status(500).json({error: 'No backups found'}); // MySQL error
+                    res.status(500).json({error: 302, message: 'No backups found'}); // MySQL error
                     return;
                 }
 
@@ -117,7 +117,7 @@ router.get('/:user_id/:backup_id', function(req,res) {
 
         if (err) {
             console.log('Invalid token.');
-            res.status(500).json({error: 'Invalid token.'});
+            res.status(500).json({error: 102, message: 'Invalid token.'});
             return;
         }
 
@@ -126,7 +126,7 @@ router.get('/:user_id/:backup_id', function(req,res) {
 
             if (err) {
                 console.log('There was an error getting db password: ' + err);
-                res.status(500).json({error: 'There was an error connecting to the database'});
+                res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
                 return;
             }
 
@@ -138,13 +138,13 @@ router.get('/:user_id/:backup_id', function(req,res) {
 
                 if (err) {
                     console.log('getBackup ' + err);
-                    res.status(500).json({error: 'Failed to obtain backup'}); // MySQL error
+                    res.status(500).json({error: 301, message: 'Failed to obtain backup'}); // MySQL error
                     return;
                 }
 
                 if (results.length == 0) {
                     console.log('No backup with id = ' + backup_id + ' found for user ' + user_id);
-                    res.status(500).json({error: 'No backup found'}); // MySQL error
+                    res.status(500).json({error: 302, message: 'No backup found'}); // MySQL error
                     return;
                 }
 
@@ -196,7 +196,7 @@ router.get('/:user_id/:backup_id', function(req,res) {
 
         if (err) {
             console.log('Invalid token.');
-            res.status(500).json({error: 'Invalid token.'});
+            res.status(500).json({error: 102, message: 'Invalid token.'});
             return;
         }
 
@@ -232,7 +232,7 @@ router.get('/:user_id/:backup_id', function(req,res) {
 
             if (err) {
                 console.log('getFedToken Error: ' + err);
-                res.status(500).json({error: 'Unable to get temporary S3 credentials'});
+                res.status(500).json({error: 303, message: 'Unable to get temporary S3 credentials'});
                 return;
             }
 
@@ -245,7 +245,7 @@ router.get('/:user_id/:backup_id', function(req,res) {
 
                 if (err) {
                     console.log('There was an error getting db password: ' + err);
-                    res.status(500).json({error: 'There was an error connecting to the database'});
+                    res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
                     return;
                 }
 
@@ -264,7 +264,7 @@ router.get('/:user_id/:backup_id', function(req,res) {
 
                     if (err) {
                         console.log('createUpload ' + err);
-                        res.status(500).json({error:'There was an error connecting to the database'}); // MySQL error
+                        res.status(500).json({error: 101, message:'There was an error connecting to the database'}); // MySQL error
                         return;
                     }
 
@@ -326,7 +326,7 @@ router.put('/uploads/:user_id/:upload_id', function(req, res) {
 
         if (err) {
             console.log('Invalid token.');
-            res.status(500).json({error: 'Invalid token.'});
+            res.status(500).json({error: 102, message: 'Invalid token.'});
             return;
         }
 
@@ -335,7 +335,7 @@ router.put('/uploads/:user_id/:upload_id', function(req, res) {
 
             if (err) {
                 console.log('There was an error getting db password: ' + err);
-                res.status(500).json({error: 'There was an error connecting to the database'});
+                res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
                 return;
             }
 
@@ -349,13 +349,13 @@ router.put('/uploads/:user_id/:upload_id', function(req, res) {
 
                 if (err) {
                     console.log('completeUpload ' + err);
-                    res.status(500).json({error: 'Failed to complete upload'}); // MySQL error
+                    res.status(500).json({error: 304, message: 'Failed to complete upload'}); // MySQL error
                     return;
                 }
 
                 if (results.length == 0) {
                     console.log('No upload with id = ' + upload_id + ' found');
-                    res.status(500).json({error: 'No upload found'}); // MySQL error
+                    res.status(500).json({error: 305, message: 'No upload found'}); // MySQL error
                     return;
                 }
 
@@ -369,7 +369,7 @@ router.put('/uploads/:user_id/:upload_id', function(req, res) {
 
                     if (err) {
                         console.log('getBackupInfo ' + err);
-                        res.status(500).json({error: 'Failed to get backup information'}); // MySQL error
+                        res.status(500).json({error: 306, message: 'Failed to get backup information'}); // MySQL error
                         return;
                     }
 
@@ -396,7 +396,7 @@ router.put('/uploads/:user_id/:upload_id', function(req, res) {
 
                             if (err) {
                                 console.log('createBackup ' + err);
-                                res.status(500).json({error:'There was an error connecting to the database'}); // MySQL error
+                                res.status(500).json({error: 101, message:'There was an error connecting to the database'}); // MySQL error
                                 return;
                             }
 
@@ -456,7 +456,7 @@ router.delete('/:user_id/:backup_id', function(req,res) {
 
         if (err) {
             console.log('Invalid token.');
-            res.status(500).json({error: 'Invalid token.'});
+            res.status(500).json({error: 102, message: 'Invalid token.'});
             return;
         }
 
@@ -465,7 +465,7 @@ router.delete('/:user_id/:backup_id', function(req,res) {
 
             if (err) {
                 console.log('There was an error getting db password: ' + err);
-                res.status(500).json({error: 'There was an error connecting to the database'});
+                res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
                 return;
             }
 
@@ -477,13 +477,13 @@ router.delete('/:user_id/:backup_id', function(req,res) {
 
                 if (err) {
                     console.log('getFileKey ' + err);
-                    res.status(500).json({error: 'Failed to obtain file_name. Cannot complete delete.'}); // MySQL error
+                    res.status(500).json({error: 308, message: 'Failed to obtain file_name. Cannot complete delete.'}); // MySQL error
                     return;
                 }
 
                 if (results.length == 0) {
                     console.log('No backup with id = ' + backup_id + ' found');
-                    res.status(500).json({error: 'No backup found'}); // MySQL error
+                    res.status(500).json({error: 309, message: 'No backup found'}); // MySQL error
                     return;
                 }
 
@@ -501,7 +501,7 @@ router.delete('/:user_id/:backup_id', function(req,res) {
 
                     if (err) {
                         console.log('deleteBackup Error: ' + err);
-                        res.status(500).json({error: 'Failed to delete backup'});
+                        res.status(500).json({error: 310, message: 'Failed to delete backup'});
                         return;
                     }
 

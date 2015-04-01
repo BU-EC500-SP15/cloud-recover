@@ -46,17 +46,20 @@ router.post('/', function(req, res) {
     if (!allValid) {
 
         var emsg = 'Invalid ';
+        var error = 0;
         if (tests[0] == false) {
-            console.log('Validation Error: invalid password format.')
+            console.log('Validation Error: invalid password format.');
+            error = 209;
             emsg = emsg + 'password format, ';
         }
         if (tests[1] == false) {
-            console.log('Validation Error: invalid email format.')
+            console.log('Validation Error: invalid email format.');
+            error = 208;
             emsg = emsg + 'email format';
         }
 
         console.log('Validation Error: ' + emsg);
-        res.status(500).json({error: emsg});
+        res.status(500).json({error: error, message: emsg});
         return;
     }
 
@@ -65,7 +68,7 @@ router.post('/', function(req, res) {
 
         if (err) {
             console.log('There was an error getting db password: ' + err);
-            res.status(500).json({error: 'There was an error connecting to the database'});
+            res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
             return;
         }
 
@@ -77,14 +80,14 @@ router.post('/', function(req, res) {
 
             if (err) {
                 console.log('verifyUser ' + err);
-                res.status(500).json({error: 'There was an error connecting to the database'}); // MySQL error
+                res.status(500).json({error: 101, message: 'There was an error connecting to the database'}); // MySQL error
                 return;
             }
 
             if (results.length == 0) {
                 // user not found
                 console.log('Error: User not found');
-                res.status(500).json({error:'User not found'});
+                res.status(500).json({error: 206, message:'User not found'});
                 return;
             }
 
@@ -94,7 +97,7 @@ router.post('/', function(req, res) {
             if (!corelib.checkPasswordHash(password,hash)){
                 // Password does not match
                 console.log('Error: Password does not match');
-                res.status(500).json({error:'Password does not match'});
+                res.status(500).json({error: 207, message:'Password does not match'});
                 return;
             }
 
@@ -107,15 +110,16 @@ router.post('/', function(req, res) {
 
                 if (err) {
                     console.log('checkLoginStatus ' + err);
-                    res.status(500).json({error:'There was an error connecting to the database'}); // MySQL error
+                    res.status(500).json({error: 101, message:'There was an error connecting to the database'}); // MySQL error
                     return;
                 }
 
+                var already_logged_in = false;
                 if (results.length != 0) {
                     // user already logged in!
-                    console.log('Error: User aleady logged in');
-                    res.status(500).json({error:'User already logged in'});
-                    return;
+                    already_logged_in = true;
+                    var old_token = results[0].token_id;
+                    console.log('User aleady logged in. Generating new token.');
                 }
 
                 // login user, add token to token table
@@ -130,15 +134,40 @@ router.post('/', function(req, res) {
                 };
 
                 function createTokenCallback() {
+
                     if (err) {
                         console.log('createToken' + err);
-                        res.status(500).json({error:'There was an error connecting to the database'}); // MySQL error
+                        res.status(500).json({error: 101, message:'There was an error connecting to the database'}); // MySQL error
                         return;
                     }
 
                     console.log('Login successful');
-                    res.status(200).json({user_id: user_id, token: token_id, message:'login successful'});
-                    db.disconnect();
+
+                    if (already_logged_in) {
+
+                        // invalidate old token in Token table
+                        var qry = "UPDATE reclodb.tokens SET token_status = 'D', date_deactivated = NOW() WHERE token_id = ?";
+                        var params = [old_token];
+
+                        function invalidateTokenCallback(err,results) {
+
+                            if (err) {
+                                console.log('deactivateToken ' + err);
+                                res.status(500).json({error: 211, message: 'Failed to deactivate session token'}); // MySQL error
+                                return;
+                            }
+
+                            console.log('Old token deactivated');
+                            res.status(200).json({user_id: user_id, token: token_id, message:'login successful'});
+                            db.disconnect();
+
+                        }; // queryCallback
+                        db.query(qry,params,invalidateTokenCallback);
+                    }
+                    else {
+                        res.status(200).json({user_id: user_id, token: token_id, message:'login successful'});
+                        db.disconnect();
+                    }
 
                 }; // createTokenCallback
                 db.query(qry,params,createTokenCallback);
