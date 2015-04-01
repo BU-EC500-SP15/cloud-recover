@@ -19,6 +19,7 @@ function connectionCallback(err) {
     if (err) {
         console.log('Token invalidation failed');
         console.log('There was an error connecting to the database');
+        db.disconnect();
         return;
     }
 
@@ -31,6 +32,7 @@ function connectionCallback(err) {
         if (err) {
             console.log('Token invalidation failed');
             console.log('There was an error connecting to the database');
+            db.disconnect();
             return;
         }
 
