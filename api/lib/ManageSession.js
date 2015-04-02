@@ -10,7 +10,6 @@
  */
 
 var DBConnection = require('../lib/DBConnection.js');
-var corelib = require('../lib/core.js');
 
 console.log('Scanning session tokens...');
 
