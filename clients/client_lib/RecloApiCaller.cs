@@ -31,7 +31,7 @@ public class RecloApiCaller
     }
 
     public static void loginUser(string email, string password,
-                     Action<string> callBack , object state = null)
+                     Action<string> callBack)
     {
          
     
@@ -45,7 +45,7 @@ public class RecloApiCaller
 
 
 
-    public static void registerUser(string email, string password, string username,  Action<string> callBack , object state = null)
+    public static void registerUser(string email, string password, string username,  Action<string> callBack)
     {
               IEnumerable<KeyValuePair<string, string>> nameValueCollection = new[] 
             {
@@ -58,7 +58,7 @@ public class RecloApiCaller
     }
 
 
-    public static void logoutUser(string token,  Action<string> callBack , object state = null)
+    public static void logoutUser(string token,  Action<string> callBack)
     {
         IEnumerable<KeyValuePair<string, string>> nameValueCollection = new[] 
             {
@@ -69,44 +69,44 @@ public class RecloApiCaller
 
     }
 
-    public static void getBackupList(string userID, string token, string backupID Action<string> callBack)
+    public static void getBackup(string userID, string token, string backupID, Action<string> callBack)
     {
         string newURL = backupsURL+userID+"/"+backupID+"?token="+token;
         HttpMethods.httpGET(newURL,callBack);
     }
 
-    public static void getBackup(string userID,string token, Action<string> callBack)
+    public static void getBackupList(string userID,string token, Action<string> callBack)
     {
         string newURL = backupsURL+userID+"?token="+token;
         HttpMethods.httpGET(newURL,callBack);
     }
 
 
-     public static void authorizeUpload(string userID,string token,string fileName, string fileSize Action<string> callBack)
+     public static void authorizeUpload(string userID,string token,string fileName, string fileSize, Action<string> callBack)
     {
-        string newURL = backupsURL+uploadsURL+userID+"?token="+token;
+            string newURL = backupsURL+uploadsURL+userID+"?token="+token;
                IEnumerable<KeyValuePair<string, string>> nameValueCollection = new[] 
             {
                 new KeyValuePair<string, string>("file_name", fileName),
                 new KeyValuePair<string, string>("file_size", fileSize),
             };
             
-            HttpMethods.httpPOST(nameValueCollection, newUrl, callBack);
+            HttpMethods.httpPOST(nameValueCollection, newURL, callBack);
 
     }
 
 
-     public static void completeUpload(string userID,string token,string uploadStatus, string uploadID, Action<string> callBack)
+     public static void completeUpload( string userID, string token, string uploadStatus, string uploadID, Action<string> callBack)
     {
         //  .../backups/uploads/:user_id/:upload_id?token=
-        string newURL = backupsURL+uploadsURL+userID+"/"+uploadID"?token="+token;
+        string newURL = backupsURL+uploadsURL+userID+"/"+uploadID+"?token="+token;
 
         IEnumerable<KeyValuePair<string, string>> nameValueCollection = new[] 
             {
                 new KeyValuePair<string, string>("upload_status", uploadStatus)
             };
 
-            HttpMethods.httpPUT(nameValueCollection, newUrl, callBack);
+            HttpMethods.httpPUT(nameValueCollection, newURL, callBack);
     }
 
 
