@@ -1,6 +1,6 @@
 /* ReClo API: /recovery/
  * ---------------------
- * v1.0
+ * v1.1
  * Carlton Duffett
  * 3-25-2015
  */
@@ -24,8 +24,8 @@ AWS.config.region = 'us-west-2';
  *
  * Res Params:
  * -----------
- * On error:    error
- * On success:  message, ip
+ * On error:    error, message
+ * On success:  message, instance[instance_id, instance_name, ip_address, availability_zone, etc.]
  *
  * Starts a new AWS instance from a specified backup. Returs the IP
  * address of the new instance if startup was successful.
@@ -49,10 +49,10 @@ AWS.config.region = 'us-west-2';
  *
  * Res Params:
  * -----------
- * On error:    error
- * On success:  message, instances[instance_id, instance_name, ip_address, availability_zone, instance_state]
+ * On error:    error, message
+ * On success:  message, instances[instance_id, instance_name, ip_address, availability_zone, etc.]
  *
- * Returns information on running instance(s) for a given user.
+ * Returns information on active instance(s) for a given user.
  */
 
  router.get('/:user_id', function(req,res) {
@@ -64,7 +64,8 @@ AWS.config.region = 'us-west-2';
 
         if (err) {
             console.log('Invalid token.');
-            res.status(500).json({error: 'Invalid token.'});
+            res.status(500).json({error: 102, message: 'Invalid token.'});
+            db.disconnect();
             return;
         }
 
@@ -73,24 +74,26 @@ AWS.config.region = 'us-west-2';
 
             if (err) {
                 console.log('There was an error getting db password: ' + err);
-                res.status(500).json({error: 'There was an error connecting to the database'});
+                res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
+                db.disconnect();
                 return;
             }
 
             // get information on all active (running) EC2 instances
-            var qry = "SELECT * FROM reclodb.instances WHERE user_id = ? AND instance_state = 'running'";
+            var qry = "SELECT * FROM reclodb.instances WHERE user_id = ? AND instance_status = 'A'";
             var params = [user_id];
 
             function getInstanceCallback(err,results) {
 
                 if (err) {
                     console.log('getInstance ' + err);
-                    res.status(500).json({error: 'Failed to obtain instance information.'}); // MySQL error
+                    res.status(500).json({error: 401, message: 'Failed to obtain instance information.'}); // MySQL error
+                    db.disconnect();
                     return;
                 }
 
                 res.status(200).json({message:'Instances obtained successfully', instances: results[0]});
-
+                db.disconnect();
             }
             db.query(qry,params,getInstanceCallback);
 
@@ -116,10 +119,11 @@ AWS.config.region = 'us-west-2';
  *
  * Res Params:
  * -----------
- * On error:    error
+ * On error:    error, message
  * On success:  message
  *
  * Stops a running EC2 instance once the backups are no longer needed.
+ * Inactive instances are terminated after 2 weeks.
  */
 
  router.delete('/:instance_id', function(req,res) {
@@ -131,7 +135,8 @@ AWS.config.region = 'us-west-2';
 
         if (err) {
             console.log('Invalid token.');
-            res.status(500).json({error: 'Invalid token.'});
+            res.status(500).json({error: 102, message: 'Invalid token.'});
+            db.disconnect();
             return;
         }
 
@@ -140,34 +145,96 @@ AWS.config.region = 'us-west-2';
 
             if (err) {
                 console.log('There was an error getting db password: ' + err);
-                res.status(500).json({error: 'There was an error connecting to the database'});
+                res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
+                db.disconnect();
                 return;
             }
 
-            // terminate specified EC2 instance
-            var ec2 = new AWS.EC2();
+            // check that instance is active
+            var qry = "SELECT instance_state, instance_status FROM reclodb.instances " +
+                      "WHERE instance_id = ?";
 
-            var params = {
-                InstanceIds: [
-                    instance_id,
-                ]
-            };
+            var params = [instance_id];
 
-            function terminationCallback(err,data) {
 
-            if (err) {
-                console.log('Failed to terminate EC2 instance ' + instance_id);
-                res.status(500).json({error: 'Failed to terminate instance'});
-                return;
-            }
+            function checkInstanceStateCallback(err,results) {
 
-            console.log(data);
+                if (err) {
+                    console.log('Failed to obtain instance status for instance ' + instance_id);
+                    res.status(500).json({error: 404, message: 'Failed to obtain instance status'});
+                    db.disconnect();
+                    return;
+                }
 
-            console.log('Instance ' + data.StoppingInstances[0].InstanceId + ' terminated.');
-            res.status(200).json({message: 'Instance terminated.'});
+                if (results.length == 0) {
+                    console.log('Instance ' + instance_id + ' not found');
+                    res.status(500).json({error: 405, message: 'Instance ' + instance_id + ' not found'});
+                    db.disconnect();
+                    return;
+                }
 
-            } // terminationCallback
-            ec2.stopInstances(params,terminationCallback);
+                if (results[0].instance_status == 'D') {
+                    console.log('Instance ' + instance_id + ' no longer active');
+                    res.status(500).json({error: 406, message: 'Instance ' + instance_id + ' no longer active'});
+                    db.disconnect();
+                    return;
+                }
+
+                if (results[0].instance_state == 'stopped') {
+                    console.log('Instance ' + instance_id + ' already stopped');
+                    res.status(500).json({error: 407, message: 'Instance ' + instance_id + ' already stopped'});
+                    db.disconnect();
+                    return;
+                }
+
+                // stop specified EC2 instance
+                var ec2 = new AWS.EC2();
+
+                var params = {
+                    InstanceIds: [
+                        instance_id,
+                    ]
+                };
+
+                function stopInstanceCallback(err,data) {
+
+                    if (err) {
+                        console.log('Failed to stop EC2 instance ' + instance_id);
+                        console.log('EC2 Error: ' + err);
+                        res.status(500).json({error: 402, message: 'Failed to stop instance'});
+                        db.disconnect();
+                        return;
+                    }
+
+                    var stopped_instance = data.StoppingInstances[0].InstanceId;
+
+                    // update instance records
+                    var qry = "UPDATE reclodb.instances SET instance_state = 'stopped', date_last_stopped = NOW() " +
+                              "WHERE instance_id = ?";
+
+                    var params = [instance_id];
+
+                    function updateInstanceCallback(err,results) {
+
+                        if (err) {
+                            console.log('updateInstances ' + err);
+                            res.status(500).json({error: 403, message: 'Failed to update instance information'}); // MySQL error
+                            db.disconnect();
+                            return;
+                        }
+
+                        console.log('Instance ' + stopped_instance + ' stopped');
+                        res.status(200).json({message: 'Instance stopped'});
+                        db.disconnect();
+
+                    } // updateInstanceCallback
+                    db.query(qry,params,updateInstanceCallback);
+
+                } // stopInstanceCallback
+                ec2.stopInstances(params,stopInstanceCallback);
+
+            } // checkInstanceStateCallback
+            db.query(qry,params,checkInstanceStateCallback);
 
         }; // connectionCallback
 
@@ -180,5 +247,3 @@ AWS.config.region = 'us-west-2';
  });
 
  module.exports = router;
-
-
