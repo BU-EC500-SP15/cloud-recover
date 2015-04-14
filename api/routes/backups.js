@@ -510,7 +510,7 @@ router.delete('/:user_id/:backup_id', function(req,res) {
 
                 // use file_name to delete object in S3
                 var s3 = new AWS.S3();
-                var bucket = 'reclo-client-backups/';
+                var bucket = 'reclo-client-backups';
                 var file_name = user_id + '/' + results[0].file_name;
 
                 var params = {
