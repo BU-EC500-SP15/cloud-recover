@@ -9,6 +9,7 @@ var express = require('express');
 var DBConnection = require('../lib/DBConnection.js');
 var corelib = require('../lib/core.js');
 var router = express.Router();
+var fs = require('fs');
 
 var AWS = require('aws-sdk');
 AWS.config.region = 'us-west-2';
@@ -35,6 +36,97 @@ AWS.config.region = 'us-west-2';
 
     var user_id     = req.params.user_id;
     var backup_id   = req.params.backup_id;
+    
+    function validationCallback(err) {
+
+        if (err) {
+            console.log('Invalid token.');
+            res.status(500).json({error: 102, message: 'Invalid token.'});
+            db.disconnect();
+            return;
+        }
+
+        // what DBConnection should do after connection is established
+        function connectionCallback(err) {
+
+            if (err) {
+                console.log('There was an error connecting to the database: ' + err);
+                res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
+                db.disconnect();
+                return;
+            }
+            
+            var qry = "SELECT file_name FROM reclodb.backups WHERE backup_id = ?";
+            var params = [backup_id];
+            
+            function getBackupCallback(err,results) {
+                
+                if (err) {
+                    console.log('There was an error connecting to the database: ' + err);
+                    res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
+                    db.disconnect();
+                    return;
+                }
+                
+                var file_name = results[0].file_name;
+                
+                // connect to s3 and initiate download to temporary storage
+                var path = '../tmp/' + user_id + '/' + file_name;
+                var file = fs.createWriteStream(path);
+ 
+                var s3 = new AWS.S3();               
+                var bucket = 'reclo-client-backups';
+                var key = user_id + '/' + file_name;
+                var no_chunks = 0;
+                
+                var params = {
+                    Bucket  : bucket,
+                    Key     : key
+                };
+                
+                console.log('Preparing backup ' + file_name + ' ...');
+                
+                function getObjectErrorHandler(err,response) {
+                    
+                    console.log('prepareBackup Error: ' + err);
+                    res.status(500).json({error: 408, message: 'Failed to prepare backup(s) for import'});
+                    db.disconnect();
+                }
+                
+                function getObjectChunkHandler(chunk) {
+                    
+                    file.write(chunk);
+                    no_chunks++;
+                }
+                
+                function getObjectDoneHandler(response) {
+                    
+                    console.log('Prepare completed with ' + no_chunks + ' chunks transferred');
+                    file.end();
+                    
+                    // now initiate ec2 import instance
+                    
+                    
+                    // end
+                }
+                
+                var request = s3.getObject(params);
+                request.on('error', getObjectErrorHandler);
+                request.on('httpData', getObjectChunkHandler);
+                request.on('httpDone', getObjectDoneHandler);
+                request.send();   
+                                        
+            } // getBackupCallback
+            db.query(qry,params,getBackupCallback);
+
+        }; // connectionCallback
+
+        // Open MySQL database connection
+        var db = new DBConnection();
+        db.connect(connectionCallback.bind(db));
+
+    } // validationCallback
+    corelib.validateToken(token,validationCallback);   
 
  });
 
@@ -73,7 +165,7 @@ AWS.config.region = 'us-west-2';
         function connectionCallback(err) {
 
             if (err) {
-                console.log('There was an error getting db password: ' + err);
+                console.log('There was an error connecting to the database: ' + err);
                 res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
                 db.disconnect();
                 return;
@@ -144,7 +236,7 @@ AWS.config.region = 'us-west-2';
         function connectionCallback(err) {
 
             if (err) {
-                console.log('There was an error getting db password: ' + err);
+                console.log('There was an error connecting to the database: ' + err);
                 res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
                 db.disconnect();
                 return;
