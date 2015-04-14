@@ -49,7 +49,7 @@ router.get('/:user_id', function(req, res) {
         function connectionCallback(err) {
 
             if (err) {
-                console.log('There was an error getting db password: ' + err);
+                console.log('There was an error connecting to the database: ' + err);
                 res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
                 db.disconnect();
                 return;
@@ -130,7 +130,7 @@ router.get('/:user_id/:backup_id', function(req,res) {
         function connectionCallback(err) {
 
             if (err) {
-                console.log('There was an error getting db password: ' + err);
+                console.log('There was an error connecting to the database: ' + err);
                 res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
                 db.disconnect();
                 return;
@@ -254,7 +254,7 @@ router.get('/:user_id/:backup_id', function(req,res) {
             function connectionCallback(err) {
 
                 if (err) {
-                    console.log('There was an error getting db password: ' + err);
+                    console.log('There was an error connecting to the database: ' + err);
                     res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
                     db.disconnect();
                     return;
@@ -346,7 +346,7 @@ router.put('/uploads/:user_id/:upload_id', function(req, res) {
         function connectionCallback(err) {
 
             if (err) {
-                console.log('There was an error getting db password: ' + err);
+                console.log('There was an error connecting to the database: ' + err);
                 res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
                 db.disconnect();
                 return;
@@ -482,7 +482,7 @@ router.delete('/:user_id/:backup_id', function(req,res) {
         function connectionCallback(err) {
 
             if (err) {
-                console.log('There was an error getting db password: ' + err);
+                console.log('There was an error connecting to the database: ' + err);
                 res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
                 db.disconnect();
                 return;
