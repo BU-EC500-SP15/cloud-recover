@@ -35,8 +35,8 @@
             this.button4 = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
+            this.statusLB = new System.Windows.Forms.Label();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.label3 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -108,11 +108,21 @@
             this.label2.Size = new System.Drawing.Size(433, 35);
             this.label2.TabIndex = 5;
             // 
+            // statusLB
+            // 
+            this.statusLB.AutoSize = true;
+            this.statusLB.Location = new System.Drawing.Point(229, 244);
+            this.statusLB.Name = "statusLB";
+            this.statusLB.Size = new System.Drawing.Size(94, 17);
+            this.statusLB.TabIndex = 7;
+            this.statusLB.Text = "System Is Idel";
+            this.statusLB.Click += new System.EventHandler(this.label3_Click);
+            // 
             // pictureBox1
             // 
             this.pictureBox1.BackColor = System.Drawing.Color.Transparent;
             this.pictureBox1.Cursor = System.Windows.Forms.Cursors.Default;
-            this.pictureBox1.Image = global::RecloBM.Properties.Resources.backingup;
+            this.pictureBox1.Image = global::RecloBM.Properties.Resources.backed;
             this.pictureBox1.InitialImage = global::RecloBM.Properties.Resources.backingup;
             this.pictureBox1.Location = new System.Drawing.Point(53, 195);
             this.pictureBox1.Name = "pictureBox1";
@@ -120,16 +130,7 @@
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox1.TabIndex = 6;
             this.pictureBox1.TabStop = false;
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(229, 244);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(110, 17);
-            this.label3.TabIndex = 7;
-            this.label3.Text = "Creating VHD ...";
-            this.label3.Click += new System.EventHandler(this.label3_Click);
+            this.pictureBox1.Click += new System.EventHandler(this.pictureBox1_Click);
             // 
             // Form3
             // 
@@ -137,7 +138,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.WhiteSmoke;
             this.ClientSize = new System.Drawing.Size(432, 403);
-            this.Controls.Add(this.label3);
+            this.Controls.Add(this.statusLB);
             this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.button4);
@@ -166,7 +167,7 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.PictureBox pictureBox1;
-        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label statusLB;
 
     }
 }
