@@ -54,10 +54,10 @@ namespace RecloBM
                 // Code to execute on success goes here
                 Console.WriteLine("Success");
                 logErrorLB.Text = "";
-                DataManager.addUser("Default", DataManager.cleanJSON(json["token"].ToString()), DataManager.cleanJSON(json["user_id"].ToString()));
-                this.Hide();
-                Form3 f = new Form3();
-                f.Show();
+                DataManager.addUser(DataManager.cleanJSON(json["username"].ToString()), DataManager.cleanJSON(json["token"].ToString()), DataManager.cleanJSON(json["user_id"].ToString()));
+                RecloApiCaller.getBackupList(DataManager.getUserID(), DataManager.getToken(), (string res1) => getBackups_callback(res));   
+                
+               
             }
             else
             {
@@ -67,6 +67,27 @@ namespace RecloBM
             }
         }
 
+        public void getBackups_callback(string res1)
+        {
+            JsonValue json = JsonValue.Parse(res1); //Creates JsonValue from response string
+            Console.WriteLine("My Json String = " + json.ToString()); //log that a response was recieved
+           
+            if (DataManager.cleanJSON(json["HttpStatus"].ToString()) == "200")
+            {
+                // Code to execute on success goes here
+                Console.WriteLine("Success");
+                DataManager.addBackupsList(json);
+            }
+            else
+            {
+                // Code to execute on error goes here
+                Console.WriteLine("error");
+
+            }
+            this.Hide();
+            Form3 f = new Form3();
+            f.Show();
+        }
         private void regBTN_Click(object sender, EventArgs e)
         {
             this.Hide();

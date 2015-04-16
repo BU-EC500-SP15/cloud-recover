@@ -1,0 +1,11 @@
+E:\Dropbox\Reclo Recovery Manager\Reclo Recovery Manager\bin\Debug\Reclo Recovery Manager.exe.config
+E:\Dropbox\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo Recovery Manager.csprojResolveAssemblyReference.cache
+E:\Dropbox\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo_Recovery_Manager.Properties.Resources.resources
+E:\Dropbox\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo Recovery Manager.csproj.GenerateResource.Cache
+E:\Dropbox\Reclo Recovery Manager\Reclo Recovery Manager\bin\Debug\Reclo Recovery Manager.exe
+E:\Dropbox\Reclo Recovery Manager\Reclo Recovery Manager\bin\Debug\Reclo Recovery Manager.pdb
+E:\Dropbox\Reclo Recovery Manager\Reclo Recovery Manager\bin\Debug\System.Json.dll
+E:\Dropbox\Reclo Recovery Manager\Reclo Recovery Manager\bin\Debug\System.Json.xml
+E:\Dropbox\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo Recovery Manager.exe
+E:\Dropbox\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo Recovery Manager.pdb
+E:\Dropbox\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo_Recovery_Manager.loginForm.resources

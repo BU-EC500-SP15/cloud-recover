@@ -1,0 +1,38 @@
+{8//
+Name=MYNAME
+ID={MYID}
+Disabled=FALSE
+Include subdirectories=TRUE
+Separated backups=TRUE
+Use attributes=TRUE
+Reset attributes=TRUE
+Backup type=MYBACKUPTYPE
+Full copies to keep=0
+Source="MYSOURCE"
+Destination="1,MYDESTINATION"
+Schedule type=SCHEDULETYPE
+Date/Time=0100000011100100100011011011111110000010110010100100010100000011
+Day of the week=
+Day of the month=1
+Month=0
+Timer=180
+Make full backup=0
+Compress=0
+Protect archive=FALSE
+Password=PD+FTBSpR5p+P/BMY6kwmnY/m0wWqUSaAT+PTA2pQJp3P/NMGKlZmn4/jkxkqTKaaj+PTBSpRppyP/BMY6lDmgE/g0xhqTCaBD/LTCCpdJ4=
+Split=0
+Split custom size=2147483647
+Archive comment=Archive created by Cobian Backup 8
+Encrypt=0
+Passphrase=PD+FTBSpR5p+P/BMY6kwmnY/m0wWqUSaAT+PTA2pQJp3P/NMGKlZmn4/jkxkqTKaaj+PTBSpRppyP/BMY6lDmgE/g0xhqTCaBD/LTCCpdJ4=
+Public key=
+Include masks=
+Exclude masks=
+Before backup events=
+After backup events=
+Impersonate=FALSE
+Cancel if impersonate fails=FALSE
+Impersonate ID=
+Impersonate domain=.
+Impersonate password=PD+FTBSpR5p+P/BMY6kwmnY/m0wWqUSaAT+PTA2pQJp3P/NMGKlZmn4/jkxkqTKaaj+PTBSpRppyP/BMY6lDmgE/g0xhqTCaBD/LTCCpdJ4=
+//8}

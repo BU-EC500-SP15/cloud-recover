@@ -1,1 +1,1 @@
-{ "username":"Default", "token":"8f15329607784b02bf48a7169657bdbf","userid":"c2cf281d-061c-40e8-8732-7bedb9e763ec"}
+{"username":"empty", "token":"empty","userid":"empty"}
