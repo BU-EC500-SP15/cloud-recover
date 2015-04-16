@@ -171,7 +171,7 @@ function importInstanceCallback(err, data) {
     }
     
     var instance_id = data.ConversionTask.ImportInstance.InstanceId;
-    var ip_address = 0.0.0.0; // unknown until the instance is finished importing
+    var ip_address = '0.0.0.0'; // unknown until the instance is finished importing
     var instance_state = 'pending';
     var instance_name = 'reclo-' + file_name.split('.')[0]; // filename of backup without extension
     
