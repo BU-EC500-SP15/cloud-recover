@@ -1,0 +1,302 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Management.Automation;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Collections;
+using System.IO;
+using System.Text.RegularExpressions;
+
+namespace CloudRecovery
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+       
+        public static String[] folderOutput = new string[100];
+        //place to store log
+        public static String logPath = "C:\\BackupLog";
+        //location of Cobian Backup 8
+        public static String CobianPath = "C:\\Program Files (x86)\\Cobian Backup 8\\";
+        public String date;
+        public static String disk2vhdPath = "C:\\BU\\Cloud Computing\\Disk2vhd\\";
+
+        public string getFile(string date, string destination)
+        {
+            using (PowerShell PowerShellInstance = PowerShell.Create())
+            {
+                PowerShellInstance.AddScript("dir "+ destination + " | ?{$_.lastwritetime -gt '" + date + "'};");
+                // use "AddParameter" to add a single parameter to the last command/script on the pipeline.
+                //PowerShellInstance.AddParameter("param1", "parameter 1 value!");
+                Collection<PSObject> PSOutput = PowerShellInstance.Invoke();
+                int i = 0;
+                foreach (PSObject outputItem in PSOutput)
+                {
+                    // if null object was dumped to the pipeline during the script then a null
+                    // object may be present here. check for null to prevent potential NRE.
+                    if (outputItem != null)
+                    {
+                        //TODO: do something with the output item 
+                        // outputItem.BaseOBject
+                        folderOutput[i] = outputItem.BaseObject.ToString();
+                        i += 1;
+                    }
+                }
+                return folderOutput[0];
+            }
+        }
+        
+        public void reName(string newName, string oldName)
+        {
+            using (PowerShell reNameInstance = PowerShell.Create())
+            {
+                reNameInstance.AddScript("Rename-Item \""+ oldName + "\" \"" + newName + "\";");
+                //richTextBox1.Text += "\nRename-Item \"" + oldName + "\" \"" + newName + "\";";
+                reNameInstance.Invoke();
+                //richTextBox1.Text += "\nrename finished";
+            }
+        }
+        
+        public void CobianBackup(string lstName)
+        {
+            //start backup, lstName is the name of .lst
+            ProcessStartInfo CobianStartInfo = new ProcessStartInfo(CobianPath + "Cobian.exe", "Cobian.exe \"-list:" + CobianPath + "DB\\" + lstName + "\" -bu -nogui -autoclose");
+            CobianStartInfo.CreateNoWindow = true;
+            CobianStartInfo.UseShellExecute = false;
+            CobianStartInfo.RedirectStandardInput = true;
+            CobianStartInfo.RedirectStandardOutput = true;
+            CobianStartInfo.RedirectStandardError = true;
+            Process CobianProcess = new Process();
+            CobianProcess.StartInfo = CobianStartInfo;
+            //start progress
+            CobianProcess.Start();
+            CobianProcess.BeginOutputReadLine();
+            CobianProcess.WaitForExit();
+        }
+        
+        public void writeLog(taskManagement task)
+        {
+            StringBuilder sb = new StringBuilder();
+            String lstName = task.returnLst(); 
+            String path = task.returnPath();
+            String taskName = task.returnTaskName();
+            String ID = task.returnID(); 
+            String backupType = task.returnBackupType();
+            String Source = task.returnSource();
+            String Destination = task.returnDestination();
+            sb.AppendLine(lstName);
+            sb.AppendLine(path);
+            sb.AppendLine(taskName);
+            sb.AppendLine(ID);
+            sb.AppendLine(backupType);
+            sb.AppendLine(Source);
+            sb.AppendLine(Destination);
+            using (StreamWriter outfile = File.AppendText(logPath + "\\Log.txt"))
+            {
+                //write log into .txt
+                outfile.Write(sb.ToString());
+            }
+        }
+
+        public static ArrayList tasks = new ArrayList();
+
+        //A new data structure to store basic info of task.
+        public class taskManagement
+        {
+            String lstName;
+            String path;
+            String taskName;
+            String ID;
+            String backupType;
+            String Source;
+            String Destination;
+            public string returnLst()
+            {
+                return lstName;
+            }
+            public string returnPath()
+            {
+                return path;
+            }
+            public string returnTaskName()
+            {
+                return taskName;
+            }
+            public string returnID()
+            {
+                return ID;
+            }
+            public string returnBackupType()
+            {
+                return backupType;
+            }
+            public string returnSource()
+            {
+                return Source;
+            }
+            public string returnDestination()
+            {
+                return Destination;
+            }
+            public taskManagement(string getLst, string getPath, string getTaskName, string getID, string getBackupType, string getSource, string getDestination)
+            {
+                lstName = getLst;
+                path = getPath;
+                taskName = getTaskName;
+                ID = getID;
+                backupType = getBackupType;
+                Source = getSource;
+                Destination = getDestination;
+            }
+        }
+
+        public void initialize(String lstName, String path, String taskName, String ID, String backupType, String Source, String Destination)
+        {
+            using (PowerShell PowerShellInstance = PowerShell.Create())
+            {
+                //Create a new .lst file
+                PowerShellInstance.AddScript("New-Item " + path + " -type file -force");
+                //Add basic information into .lst file
+                PowerShellInstance.AddScript("$original_file = 'C:\\Program Files (x86)\\Cobian Backup 8\\DB\\BaseBackup.lst'");
+                PowerShellInstance.Invoke();
+                PowerShellInstance.AddScript("$destination_file = 'C:\\Program Files (x86)\\Cobian Backup 8\\DB\\" + lstName + "'");
+                PowerShellInstance.Invoke();
+                PowerShellInstance.AddScript("(Get-Content $original_file) | Foreach-Object {$_ -Replace 'MYNAME', '" + taskName + "' -Replace 'MYID', '" + ID + "' -Replace 'MYBACKUPTYPE', '" + backupType + "' -Replace 'MYSOURCE', '" + Source + "' -Replace 'MYDESTINATION', '" + Destination + "' } | Set-Content $destination_file");
+                PowerShellInstance.Invoke();
+                richTextBox1.Text += "\nInitiallized, click load button to reefresh the list";
+            }
+        }
+
+        public void copyItems(String source, String destination)
+        {
+            using (PowerShell PowerShellInstance = PowerShell.Create())
+            {
+                PowerShellInstance.AddScript("$items = (Get-ChildItem " + destination + source + ").FullName");
+                PowerShellInstance.AddScript("foreach ($item in $items){Copy-Item $item " + destination + "}");
+                PowerShellInstance.Invoke();
+            }
+        }
+
+        public void deleteFolder(String destination)
+        {
+            using (PowerShell PowerShellInstance = PowerShell.Create())
+            {
+                PowerShellInstance.AddScript("Remove-Item " + destination + " -recurse");
+                PowerShellInstance.Invoke();
+            }
+        }
+
+        //create .vhd
+        public void createVHD(String destination, String name)
+        {
+            ProcessStartInfo disk2vhdStartInfo = new ProcessStartInfo();
+            disk2vhdStartInfo.WorkingDirectory = disk2vhdPath; 
+            disk2vhdStartInfo.FileName = "disk2vhd.exe";
+            disk2vhdStartInfo.FileName = "disk2vhd.exe";
+            List<string> arguments = new List<string>();
+            arguments.Add("disk2vhd e:");
+            arguments.Add("e:\\a.vhd");
+            //disk2vhdStartInfo.Arguments = "disk2vhd e: e:\\a.vhd";
+            disk2vhdStartInfo.CreateNoWindow = true;
+            disk2vhdStartInfo.UseShellExecute = false;
+            disk2vhdStartInfo.RedirectStandardInput = true;
+            disk2vhdStartInfo.RedirectStandardOutput = true;
+            disk2vhdStartInfo.RedirectStandardError = true;
+            Process disk2vhdProcess = new Process();
+            disk2vhdProcess.StartInfo = disk2vhdStartInfo;
+            //start progress
+            disk2vhdProcess.Start();
+            MessageBox.Show("Unselect \"use vhdx\" checkbox\nChoose \"" + destination + "\" in the Volume\nSet the vhd file name to \"" + destination + name + ".vhd\"\nClick create and wait until backup finishes");
+            disk2vhdProcess.BeginOutputReadLine();
+            disk2vhdProcess.WaitForExit();
+            richTextBox1.Text += "\nvhd created";
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            string date = DateTime.Now.ToString();
+            int index = taskListBox.SelectedIndex;
+            taskManagement taskSelected = (taskManagement)tasks[index];
+            CobianBackup(taskSelected.returnLst());
+            string originName = getFile(date, taskSelected.returnDestination());
+            originName = taskSelected.returnDestination() + "\\" + originName;
+            string newName = DateTime.Now.ToString("MMddyyyyHHmm");
+            reName(newName, originName);
+            copyItems(newName, taskSelected.returnDestination());
+            deleteFolder(taskSelected.returnDestination()+newName);
+            createVHD(taskSelected.returnDestination() , newName);
+            richTextBox1.Text += "\nBackup finished";
+        }
+
+        public void createNewTask(String lstName, String path, String taskName, String ID, String backupType, String Source, String Destination)
+        {
+            taskManagement Task1 = new taskManagement(lstName, path, taskName, ID, backupType, Source, Destination);
+            tasks.Add(Task1);
+            writeLog(Task1);
+        }
+
+        private void newTaskButton_Click(object sender, EventArgs e)
+        {
+            //lst name
+            String lstName = "FullBackup.lst";
+            //task name
+            String taskName = "FullBackup";
+            //path to store the lst
+            String path = "\"C:\\Program Files (x86)\\Cobian Backup 8\\DB\\" + lstName + "\"";
+            //ID has to be unique
+            String ID = "2";
+            //1 for incremental, 0 for full
+            String backupType = "0";
+            //Files to be backuped
+            String Source = "1,\"\"D:\\BackupTarget\\\"\"";
+            //Backup target
+            String Destination = "E:\\";
+            //create a new task
+            createNewTask(lstName, path, taskName, ID, backupType, Source, Destination);
+            initialize(lstName, path, taskName, ID, backupType, Source, Destination);
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+        }
+
+        private void loadTasksButton_Click(object sender, EventArgs e)
+        {
+            tasks.Clear();
+            int count = 0;
+            string line;
+            String[] taskParameter = new String[100];
+            // Read the file and display it line by line.
+            System.IO.StreamReader file = new System.IO.StreamReader("C:\\BackupLog\\Log.txt");
+            while ((line = file.ReadLine()) != null)
+            {
+                taskParameter[count] = line;
+                count++;
+                if (count % 7 == 0)
+                {
+                    taskManagement task = new taskManagement(taskParameter[0], taskParameter[1], taskParameter[2], taskParameter[3], taskParameter[4], taskParameter[5], taskParameter[6]);
+                    tasks.Add(task);
+                    count = 0;
+                }
+            }
+            file.Close();
+            taskListBox.Items.Clear();
+            for (int i = 0; i < tasks.Count; i++)
+            {
+                taskManagement taskSelected = (taskManagement)tasks[i];
+                //show tasks in listbox
+                taskListBox.Items.Add(taskSelected.returnTaskName() + "    " + taskSelected.returnBackupType() + "    " + taskSelected.returnSource() + "    " + taskSelected.returnDestination());
+            }
+        }
+    }
+}
