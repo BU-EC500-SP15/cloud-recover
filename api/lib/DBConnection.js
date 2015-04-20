@@ -41,6 +41,7 @@ DBConnection.prototype.connect = function(connectionCallback) {
                 user     : 'reclo',
                 password : pw,
                 database : 'reclodb',
+                multipleStatements : true
             });
             that.db.connect();
 
