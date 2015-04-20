@@ -34,6 +34,7 @@ router.post('/:user_id/:backup_id', function(req,res) {
    
     var user_id     = req.params.user_id;
     var backup_id   = req.params.backup_id;
+    var token       = req.query.token;
     
     function validationCallback(err) {
         
