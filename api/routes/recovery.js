@@ -53,210 +53,43 @@ router.post('/:user_id/:backup_id', function(req,res) {
             db.disconnect();
             return;
         }
-        
-        // get list of backups to download
-        var qry =   "SET @date_selected = (" +
-                        "SELECT date_created FROM reclodb.backups WHERE " +
-                        "backup_id = ?); " +
-        
-                    "SET @date_of_last_full = (" +
-                        "SELECT date_created FROM reclodb.backups WHERE " +
-                        "type = 'full' AND " +
-                        "date_created <= @date_selected " +
-                        "ORDER BY date_created DESC LIMIT 1); " +
-        
-                    "SELECT file_name FROM reclodb.backups WHERE " +
-                        "backup_status = 'A' AND " + 
-                        "user_id = ? AND " + 
-                        "date_created BETWEEN @date_of_last_full AND @date_selected;";
-                               
-        var params = [backup_id,user_id];
+                 
+        // create new entry in recovery table  
+        var recovery_id = corelib.createToken();  
             
-    function getBackupListCallback(err,results) {
-
-        if (err) {
-            console.log('getBackupList ' + err);
-            res.status(500).json({error: 408, message: 'Failed to obtain backups. Cannot start recovery.'}); // MySQL error
-            db.disconnect();
-            return;
-        }
+        var qry = "INSERT INTO reclodb.recovery SET date_started = NOW(), ?";
         
-        backups = results[2]; // first 2 entries are results from 2x SET queries
-        
-        if (backups.length == 0) {
-            console.log('No backups found');
-            res.status(500).json({error: 409, message: 'No backups found. Cannot start recovery.'});
-            db.disconnect();
-            return;
-        }
-         
-        // create new entry in recovery table
-        var recovery_id = corelib.createToken();
-        var no_downloads = 1; // just the full backup for now. otherwise use >> results.length;
-        var no_completed = 0;
-        
-        var qry = "UPDATE reclodb.recovery SET date_started = NOW(), ?";
         var params = {
             recovery_id     :   recovery_id,
             user_id         :   user_id,
-            total_progress  :   1,
+            total_progress  :   0,
             instance_state  :   'pending',
-            recovery_state  :   'downloading',
-            state_progress  :   1,
-            no_downloads    :   no_downloads,
+            recovery_state  :   'pending',
+            state_progress  :   0,
+            no_downloads    :   0,
             no_completed    :   0,
-            recovery_status :   'A' 
+            recovery_status :   'A'
         }
         
     function createRecoveryCallback(err,results) {
         
         if (err) {
             console.log('createRecovery ' + err);
-            res.status(500).json({error: 410, message: 'Failed to create recovery task'}); // MySQL error
+            res.status(500).json({error: 408, message: 'Failed to create recovery task'}); // MySQL error
             db.disconnect();
             return;
         }
         
-        db.disconnect(); // release mysql database connection
-        
-        // start download tasks
-        var s3 = new AWS.S3(); 
-
-        var dir = '/backups-tmp/' + user_id + '/';
-        
-        if (!fs.existsSync(dir)){
-            fs.mkdirSync(dir);
-        }
-               
-        // just download full backup for now
-        var file_name = backups[0].file_name;  
-        var path = '/backups-tmp/' + user_id + '/' + file_name;
-        var stream = fs.createWriteStream(path);
-        var bucket = 'reclo-client-backups';
-        var key = user_id + '/' + file_name;
-        var no_chunks = 0;
-
-        var params = {
-            Bucket  : bucket,
-            Key     : key
-        };
-        
-        console.log('Preparing backup ' + file_name + ' ...');        
-       
-        function getObjectErrorHandler(err,response) {
-        
-            console.log('prepareBackup Error: ' + err);
-            console.log('download failed for file ' + file_name);
-            stream.end();
-            
-            function connectionCallback(err) {
-                
-                if (err) {
-                    console.log('There was an error connecting to the database: ' + err);
-                    db.disconnect();
-                    return;
-                }
-            
-                var qry = "UPDATE reclodb.recovery SET " +
-                          "recovery_state = 'failed' WHERE " +
-                          "recovery_id = ?";
-                
-                var params = [recovery_id];                
-                
-            function failRecoveryCallback(err,results) {
-                
-                if (err) {
-                    console.log('There was an error connecting to the database: ' + err);
-                    db.disconnect();
-                    return;
-                }           
-                         
-                console.log('Recovery ' + recovery_id + ' failed. File ' + file_name + ' failed to download.');
-                db.disconnect();
-                
-            } // failRecoveryCallback
-            db.query(qry,params,failRecoveryCallback);
-                
-            } // connectionCallback
-            
-            // Open new MySQL database connection
-            var db = new DBConnection();
-            db.connect(connectionCallback.bind(db));
-            
-        } // getObjectErrorHandler
-
-        function getObjectChunkHandler(chunk) {
-            
-            stream.write(chunk);
-            no_chunks++;
-            
-        } // getObjectChunkHandler
-
-        function getObjectDoneHandler(response) {
-            
-            console.log('Prepare ' + file_name + ' completed with ' + no_chunks + ' chunks transferred');
-            stream.end();
-            
-            function connectionCallback(err) {
-                
-                if (err) {
-                    console.log('There was an error connecting to the database: ' + err);
-                    db.disconnect();
-                    return;
-                }
-                
-                no_completed++;
-                
-                var progress = (no_downloads / no_completed) * 100;
-                
-                var qry = "UPDATE reclodb.recovery SET " +
-                          "no_completed = 1, " +
-                          "state_progress = ? WHERE " +
-                          "recovery_id = ?";
-                
-                var params = [progress,recovery_id];                
-                
-            function updateProgressCallback(err,results) {
-                
-                if (err) {
-                    console.log('There was an error connecting to the database: ' + err);
-                    db.disconnect();
-                    return;
-                }
-                                   
-                console.log('updated download progress for recovery_id: ' + recovery_id);
-                db.disconnect();
-                
-            } // updateProgressCallback
-            db.query(qry,params,updateProgressCallback);
-                
-            } // connectionCallback
-        
-            // Open MySQL database connection
-            var db = new DBConnection();
-            db.connect(connectionCallback.bind(db));
-            
-        } // getObjectDoneHandler
-        
-       
-        var request = s3.getObject(params);
-        request.on('error', getObjectErrorHandler);
-        request.on('httpData', getObjectChunkHandler);
-        request.on('httpDone', getObjectDoneHandler);
-        request.send();
-        
         res.status(200).json({message: 'Recovery process started',
-                              recovery_id: recovery_id,
-                              total_progress: 1,
-                              current_state: 'downloading',
-                              state_progress: 1
-                            });
+                                recovery_id: recovery_id,
+                                total_progress: 0,
+                                current_state: 'pending',
+                                state_progress: 0
+                                });
+        db.disconnect();
    
     } // createRecoveryCallback
     db.query(qry,params,createRecoveryCallback);
-            
-    } // getBackupListCallback 
-    db.query(qry,params,getBackupListCallback);
                     
     } // connectionCallback
 
@@ -266,7 +99,9 @@ router.post('/:user_id/:backup_id', function(req,res) {
 
     } // validationCallback
     corelib.validateToken(token,validationCallback);
+    
  });
+
 
 /*
  * API Call:    GET /recovery/:user_id?token=
@@ -336,6 +171,7 @@ router.get('/:user_id', function(req,res) {
     corelib.validateToken(token,validationCallback);
 
 });
+
 
 /*
  * API Call:    DELETE /recovery/:instance_id?token=
