@@ -1,6 +1,6 @@
 /* ReClo API: /recovery/
  * ---------------------
- * v2.0
+ * v2.1
  * Carlton Duffett
  * 4-19-2015
  */
@@ -16,7 +16,7 @@ AWS.config.region = 'us-west-2';
 
 /*
  * API Call:    POST /recovery/:user_id/:backup_id?token=
- * C# Call:     reclo.getInstances()
+ * C# Call:     reclo.startRecovery()
  *
  * Req Params:
  * -----------
@@ -25,9 +25,9 @@ AWS.config.region = 'us-west-2';
  * Res Params:
  * -----------
  * On error:    error, message
- * On success:  message, recovery_id, overall_progress, current_task, task_progress
+ * On success:  message, recovery_id, total_progress, current_state, state_progress
  *
- * Initiates the recovery operation and begins download of backups from S3.
+ * Initiates the recovery operation.
  */
  
 router.post('/:user_id/:backup_id', function(req,res) {
@@ -99,6 +99,86 @@ router.post('/:user_id/:backup_id', function(req,res) {
 
     } // validationCallback
     corelib.validateToken(token,validationCallback);
+    
+ });
+
+
+/*
+ * API Call:    GET /recovery/:recovery_id?token=
+ * C# Call:     reclo.getProgress()
+ *
+ * Req Params:
+ * -----------
+ * Url query:   token
+ *
+ * Res Params:
+ * -----------
+ * On error:    error, message
+ * On success:  message, total_progress, current_state, state_progress
+ *
+ * Gets the current progress of the recovery operation.
+ */
+ 
+ router.get('/:recovery_id', function(req,res){
+    
+    var recovery_id = req.params.recovery_id;
+    var token       = req.query.token;
+    
+    function validationCallback(err) {
+
+        if (err) {
+            console.log('Invalid token.');
+            res.status(500).json({error: 102, message: 'Invalid token.'});
+            db.disconnect();
+            return;
+        }
+
+    // what DBConnection should do after connection is established
+    function connectionCallback(err) {
+
+        if (err) {
+            console.log('There was an error connecting to the database: ' + err);
+            res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
+            db.disconnect();
+            return;
+        }
+        
+        // get current recovery progress
+        var qry = "SELECT total_progress, current_state, state_progress FROM " + 
+                  "reclodb.recovery WHERE recovery_id = ?";
+        
+        var params = [recovery_id];
+
+        function getProgressCallback(err,results) {
+            
+            if (err) {
+                console.log('getProgress ' + err);
+                res.status(500).json({error: 409, message: 'Failed to get recovery progress'}); // MySQL error
+                db.disconnect();
+                return;
+            }
+            var total_progress = results[0].total_progress;
+            var current_state = results[0].current_state;
+            var state_progress = results[0].state_progress;     
+            
+            res.status(200).json({message: 'Recovery in-progress',
+                                    total_progress: total_progress,
+                                    current_state: current_state,
+                                    state_progress: state_progress
+                                    });
+            db.disconnect();
+                                         
+        } // getProgressCallback
+        db.query(qry,params,getProgressCallback);
+
+    } // connectionCallback
+
+    // Open MySQL database connection
+    var db = new DBConnection();
+    db.connect(connectionCallback.bind(db));
+
+    } // validationCallback
+    corelib.validateToken(token,validationCallback);   
     
  });
 
