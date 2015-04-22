@@ -62,6 +62,7 @@ router.post('/:user_id/:backup_id', function(req,res) {
         var params = {
             recovery_id     :   recovery_id,
             user_id         :   user_id,
+            backup_id       :   backup_id,
             total_progress  :   0,
             instance_state  :   'pending',
             recovery_state  :   'pending',
