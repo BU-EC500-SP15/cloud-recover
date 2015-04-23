@@ -8,20 +8,20 @@
  * Regularly scans the recovery database and manages recovery tasks that are in-progress.
  * Currently this job runs once per minute. Typical recovery takes 1 hour to complete.
  *
- * Possible recovery states are:
+ * Possible recovery states and (progress) are:
  * -------------------------------------------------------------------------------------------------
- * PENDING      - waiting to start backup downloads
- * DOWNLOADING  - downloading full and incremental backups to temporary storage for import
- * DOWNLOADED   - ready to merge downloaded backups into one VHD
- * MERGING      - merging VHD incrementals into one full backup for import
- * MERGED       - ready to import backup into EC2
- * IMPORTING    - importing backup into EC2, see progress using ec2-describe-conversion-tasks
- * IMPORTED     - sucessfully imported into EC2, ready to start conversion
- * CONVERTING   - in-progress conversion from VHD to EC2 AMI instance (started automatically)
- * CONVERTED    - conversion task finished (determined by successfully attempting to start instance)
- * FINISHING    - starting new instance
- * FINISHED     - new instance started, recovery process complete
- * FAILED       - recovery failed at some point during the download/import/conversion process
+ * PENDING      - ( 0%) waiting to start backup downloads
+ * DOWNLOADING  - ( - ) downloading full and incremental backups to temporary storage for import
+ * DOWNLOADED   - (15%) ready to merge downloaded backups into one VHD
+ * MERGING      - ( - ) merging VHD incrementals into one full backup for import
+ * MERGED       - (25%) ready to import backup into EC2
+ * IMPORTING    - ( - ) importing backup into EC2, see progress using ec2-describe-conversion-tasks
+ * IMPORTED     - (55%) sucessfully imported into EC2, ready to start conversion
+ * CONVERTING   - ( - ) in-progress conversion from VHD to EC2 AMI instance (started automatically)
+ * CONVERTED    - (90%) conversion task finished (determined by successfully attempting to start instance)
+ * FINISHING    - ( - ) starting new instance
+ * FINISHED     - (100) new instance started, recovery process complete
+ * FAILED       - ( - ) recovery failed at some point during the download/import/conversion process
  * -------------------------------------------------------------------------------------------------
  */
 
@@ -33,6 +33,9 @@ AWS.config.region = 'us-west-2';
 
 var ts = corelib.createTimestamp();
 console.log('Starting recovery management at ' + ts);
+
+// current progress percentage weights
+var progress = {downloading: 5, downloaded: 15, merged: 25, imported: 55, converted: 90, finished: 100};
 
 /* -------------------------------------------------------------------------------------------------
  * MANAGE ALL ACTIVE RECOVERY TASKS
@@ -133,7 +136,9 @@ function handlePending(user_id,recovery_id) {
     function connectionCallback(err) {
 
         if (err) {
-            console.log('Recovery management failed for task ' + recovery_id + ', Unable to connect to the database');
+            console.log('Recovery management failed for task ' + recovery_id +
+                        ', Unable to connect to the database');
+            
             db.disconnect();
             return;
         }
@@ -159,19 +164,46 @@ function handlePending(user_id,recovery_id) {
         function getBackupListCallback(err,results) {
         
             if (err) {
-                console.log('Recovery management failed for task ' + recovery_id + ', there was an error connecting to the database');
+                console.log('Recovery management failed for task ' + recovery_id + 
+                            ', there was an error connecting to the database');
+                
+                db.disconnect();
                 return;
             }
             
-            backups = results.splice(0,2);
+            backups = results.splice(0,2); // first 2 results are garbage from the "SET" statements
             
-            // initiate download of backups here
-            for (i = 0; i < backups.length; i++) {
+            var qry = "UPDATE reclodb.recovery SET no_downloads = ?, " +
+                        "no_completed = 0, " + 
+                        "recovery_state = 'downloading', " +
+                        "total_progress = ? " +
+                        "WHERE recovery_id = ?";
+            
+            var params = [backups.length, progress.downloading, recovery_id];
+            
+            function startDownloadCallback(err,results) {
                 
-            }
+                if (err) {
+                    console.log('Recovery management failed for task ' + recovery_id + 
+                                ', there was an error connecting to the database');
+                    
+                    db.disconnect();
+                    return;
+                }               
+                
+                // initiate parallel download of full and incremental backups
+                for (i = 0; i < backups.length; i++) {
+                    
+                    console.log('Downloading file ' + backups[i].file_name);
+                    
+                } // for 
+                
+                db.disconnect();   
+            }  
+            db.query(qry,params,startDownloadCallback);
             
         } // getRecoveryTasksCallback
-        db.query(qry,getBackupListCallback);
+        db.query(qry,params,getBackupListCallback);
     }
     var db = new DBConnection();
     db.connect(connectionCallback.bind(db));   
@@ -189,25 +221,77 @@ function handleDownloading(user_id,recovery_id) {
     function connectionCallback(err) {
 
         if (err) {
-            console.log('Recovery management failed for task ' + recovery_id + ', Unable to connect to the database');
+            console.log('Recovery management failed for task ' + recovery_id + 
+                        ', Unable to connect to the database');
+            
             db.disconnect();
             return;
         }
         
-        // get a list of current recovery tasks in progress
-        var qry = 
+        // get a list of current download tasks
+        var qry = "SELECT no_downloads, no_completed FROM reclodb.recovery WHERE recovery_id = ?";
+        var params = [recovery_id];
 
-        function Callback(err,results) {
+        function getDownloadProgressCallback(err,results) {
         
             if (err) {
-                console.log('Recovery management failed for task ' + recovery_id + ', there was an error connecting to the database');
+                console.log('Recovery management failed for task ' + recovery_id + 
+                            ', there was an error connecting to the database');
+                
+                db.disconnect();
                 return;
             }
             
-            // do your shit here
+            no_downloads = results[0].no_downloads;
+            no_completed = results[0].no_completed;
+            
+            if (no_downloads == no_completed) {
+                
+                // downloading is complete
+                var qry = "UPDATE reclodb.recovery SET recovery_state = ?, " + 
+                            "state_progress = ?, " + 
+                            "total_progress = ? " + 
+                            "WHERE recovery_id = ?";
+                 
+                 
+                var next_state      = 'downloaded';
+                var state_progress  = 0
+                var total_progress  = progress.downloaded;
+                           
+                var params = [next_state, state_progress, total_progress, recovery_id];
+                
+                var msg = "Downloading completed";
+                
+            } else {
+                
+                // downloading still in progress
+                var qry = "UPDATE reclodb.recovery SET state_progress = ? WHERE recovery_id = ?";
+                
+                var state_progress = (no_completed / no_downloaded) * 100;
+                
+                var params = [state_progress, recovery_id];
+                
+                var msg = "Downloading progress updated";
+            }
+            
+            function updateDownloadingProgressCallback(err,results) {
+                
+                if (err) {
+                    console.log('Recovery management failed for task ' + recovery_id + 
+                                ', there was an error connecting to the database');
+                    
+                    db.disconnect();
+                    return;
+                }
+                
+                console.log(msg);
+                db.disconnect();
+                               
+            } // updateDownloadingProgress
+            db.query(qry,params,updateDownloadingProgressCallback);
             
         } // getRecoveryTasksCallback
-        db.query(qry,getRecoveryTasksCallback);
+        db.query(qry,params,getDownloadProgressCallback);
     }
     var db = new DBConnection();
     db.connect(connectionCallback.bind(db));
@@ -230,19 +314,22 @@ function handleDownloaded(user_id,recovery_id) {
         }
         
         // get a list of current recovery tasks in progress
-        var qry = 
+        var qry = "UPDATE reclodb.recovery SET recovery_state = 'merging', state WHERE recovery_id = ?";
+        var params = [recovery_id];
 
-        function Callback(err,results) {
+        function startMergingCallback(err,results) {
         
             if (err) {
                 console.log('Recovery management failed for task ' + recovery_id + ', there was an error connecting to the database');
                 return;
             }
             
-            // do your shit here
+            // begin merging task here
+            var merging = 'foo';
+            
             
         } // getRecoveryTasksCallback
-        db.query(qry,getRecoveryTasksCallback);
+        db.query(qry,params,startMergingCallback);
     }
     var db = new DBConnection();
     db.connect(connectionCallback.bind(db));
@@ -274,7 +361,7 @@ function handleMerging(user_id,recovery_id) {
                 return;
             }
             
-            // do your shit here
+            // do something polite here
             
         } // getRecoveryTasksCallback
         db.query(qry,getRecoveryTasksCallback);
@@ -294,7 +381,9 @@ function handleMerged(user_id,recovery_id) {
     function connectionCallback(err) {
 
         if (err) {
-            console.log('Recovery management failed for task ' + recovery_id + ', Unable to connect to the database');
+            console.log('Recovery management failed for task ' + recovery_id + 
+                        ', Unable to connect to the database');
+            
             db.disconnect();
             return;
         }
@@ -305,11 +394,14 @@ function handleMerged(user_id,recovery_id) {
         function Callback(err,results) {
         
             if (err) {
-                console.log('Recovery management failed for task ' + recovery_id + ', there was an error connecting to the database');
+                console.log('Recovery management failed for task ' + recovery_id + 
+                            ', there was an error connecting to the database');
+                
+                db.disconnect();
                 return;
             }
             
-            // do your shit here
+            // do something polite here
             
         } // getRecoveryTasksCallback
         db.query(qry,getRecoveryTasksCallback);
@@ -329,7 +421,9 @@ function handleImporting(user_id,recovery_id) {
     function connectionCallback(err) {
 
         if (err) {
-            console.log('Recovery management failed for task ' + recovery_id + ', Unable to connect to the database');
+            console.log('Recovery management failed for task ' + recovery_id + 
+                        ', Unable to connect to the database');
+            
             db.disconnect();
             return;
         }
@@ -340,11 +434,14 @@ function handleImporting(user_id,recovery_id) {
         function Callback(err,results) {
         
             if (err) {
-                console.log('Recovery management failed for task ' + recovery_id + ', there was an error connecting to the database');
+                console.log('Recovery management failed for task ' + recovery_id + 
+                            ', there was an error connecting to the database');
+                
+                db.disconnect();
                 return;
             }
             
-            // do your shit here
+            // do something polite here
             
         } // getRecoveryTasksCallback
         db.query(qry,getRecoveryTasksCallback);
@@ -364,7 +461,9 @@ function handleImported(user_id,recovery_id) {
     function connectionCallback(err) {
 
         if (err) {
-            console.log('Recovery management failed for task ' + recovery_id + ', Unable to connect to the database');
+            console.log('Recovery management failed for task ' + recovery_id + 
+                        ', Unable to connect to the database');
+            
             db.disconnect();
             return;
         }
@@ -375,11 +474,14 @@ function handleImported(user_id,recovery_id) {
         function Callback(err,results) {
         
             if (err) {
-                console.log('Recovery management failed for task ' + recovery_id + ', there was an error connecting to the database');
+                console.log('Recovery management failed for task ' + recovery_id + 
+                            ', there was an error connecting to the database');
+                
+                db.disconnect();
                 return;
             }
             
-            // do your shit here
+            // do something polite here
             
         } // getRecoveryTasksCallback
         db.query(qry,getRecoveryTasksCallback);
@@ -399,7 +501,9 @@ function handleConverting(user_id,recovery_id) {
     function connectionCallback(err) {
 
         if (err) {
-            console.log('Recovery management failed for task ' + recovery_id + ', Unable to connect to the database');
+            console.log('Recovery management failed for task ' + recovery_id + 
+                        ', Unable to connect to the database');
+            
             db.disconnect();
             return;
         }
@@ -410,11 +514,14 @@ function handleConverting(user_id,recovery_id) {
         function Callback(err,results) {
         
             if (err) {
-                console.log('Recovery management failed for task ' + recovery_id + ', there was an error connecting to the database');
+                console.log('Recovery management failed for task ' + recovery_id + 
+                            ', there was an error connecting to the database');
+                
+                db.disconnect();
                 return;
             }
             
-            // do your shit here
+            // do something polite here
             
         } // getRecoveryTasksCallback
         db.query(qry,getRecoveryTasksCallback);
@@ -434,7 +541,9 @@ function handleConverted(user_id,recovery_id) {
     function connectionCallback(err) {
 
         if (err) {
-            console.log('Recovery management failed for task ' + recovery_id + ', Unable to connect to the database');
+            console.log('Recovery management failed for task ' + recovery_id + 
+                        ', Unable to connect to the database');
+            
             db.disconnect();
             return;
         }
@@ -445,11 +554,14 @@ function handleConverted(user_id,recovery_id) {
         function Callback(err,results) {
         
             if (err) {
-                console.log('Recovery management failed for task ' + recovery_id + ', there was an error connecting to the database');
+                console.log('Recovery management failed for task ' + recovery_id + 
+                            ', there was an error connecting to the database');
+                
+                db.disconnect();
                 return;
             }
             
-            // do your shit here
+            // do something polite here
             
         } // getRecoveryTasksCallback
         db.query(qry,getRecoveryTasksCallback);
@@ -469,7 +581,9 @@ function handleFinishing(user_id,recovery_id) {
     function connectionCallback(err) {
 
         if (err) {
-            console.log('Recovery management failed for task ' + recovery_id + ', Unable to connect to the database');
+            console.log('Recovery management failed for task ' + recovery_id + 
+                        ', Unable to connect to the database');
+            
             db.disconnect();
             return;
         }
@@ -480,11 +594,14 @@ function handleFinishing(user_id,recovery_id) {
         function Callback(err,results) {
         
             if (err) {
-                console.log('Recovery management failed for task ' + recovery_id + ', there was an error connecting to the database');
+                console.log('Recovery management failed for task ' + recovery_id + 
+                            ', there was an error connecting to the database');
+                
+                db.disconnect();
                 return;
             }
             
-            // do your shit here
+            // do something polite here
             
         } // getRecoveryTasksCallback
         db.query(qry,getRecoveryTasksCallback);
