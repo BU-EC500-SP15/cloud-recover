@@ -188,8 +188,10 @@ function handlePending(recovery_id,user_id,backup_id) {
                     return;
                 }               
                 
+                var file_name   = backups[0].file_name;
+                 
                 // download full backup
-                console.log('Downloading file ' + backups[0].file_name);
+                console.log('Downloading file ' + file_name);
                 
                 var dir = '/backups-tmp/' + user_id + '/';
 
@@ -197,99 +199,76 @@ function handlePending(recovery_id,user_id,backup_id) {
                     fs.mkdirSync(dir);
                 }
                 
-                // backups download to separate volume mounted on our server 
-                var file_name   = backups[0].file_name;
-                var path        = '/backups-tmp/' + user_id + '/' + file_name;  
-                var stream      = fs.createWriteStream(path);     
-                var bucket      = 'reclo-client-backups';
-                var key         = user_id + '/' + file_name;
+                // backups download to separate volume mounted on our server
+                var path_for_download = dir + file_name;    
+                var bucket            = 'reclo-client-backups';
+                var key               = user_id + '/' + file_name;
                 
-                var download = {
-                    path        : path,
-                    stream      : stream,
-                    file_name   : file_name,
-                    no_chunks   : 0
-                }
+                // run download through CLI
+                var cmd = 'aws s3 cp s3://' + bucket +
+                          '/' + key +
+                          ' ' + path_for_download;
+ 
+                // used with child process
+                var failed = false; 
+                var qry = '';
+                var params = [];
+                  
+                // child process handlers
+                function handle_stdout(data) {
+                     // nothing to do here
+                } // handle_stdout
                 
-                var params = {
-                    Bucket  : bucket,
-                    Key     : key
-                };
+                function handle_stderr(err) {
+                    
+                    console.log('Download Error: ' + err);
+                    failed = true;
+                    
+                    // query to use if failed
+                    qry = "UPDATE reclodb.recovery SET recovery_state = 'failed' WHERE " +
+                              "recovery_id = ?";
+                              
+                    params = [recovery_id];                
+                } // handle_stderr
+                
+                function handle_close(code) {
+                    
+                    console.log('download closed with code ' + code);
+                    
+                    if (!failed) {
+                    
+                        // query to use if successful
+                        qry = "UPDATE reclodb.recovery SET no_completed = 1, " +
+                                    "state_progress = 100 " + // 100% complete
+                                    "WHERE recovery_id = ?"; 
+                                                     
+                        params = [recovery_id];
+                    }
+                    
+                    function updateRecoveryStateCallback(err,results) {
+                        
+                        if (err) {
+                            console.log('Recovery management failed for task ' + recovery_id +
+                                        ', there was an error connecting to the database');
+                            
+                            db.disconnect();
+                            return;
+                        }
+                        
+                        console.log('Successfully downloaded backup ' + backup_id);
+                        db.disconnect();  
         
-                var s3 = new AWS.S3();
-
-                function getObjectErrorHandler(err,response) {
-                        
-                    console.log('prepareBackup Error: ' + err);
-                    console.log('download failed for file ' + download.file_name);
-                    download.stream.end();
+                    } // updateRecoveryStateCallback
+                    db.query(qry,params,updateRecoveryStateCallback);
                     
-                    // update database to indicate failure
-                    var qry = "UPDATE reclodb.recovery SET recovery_state = 'failed' " +
-                              "WHERE recovery_id = ?"; 
-                                      
-                    var params = [recovery_id];
-                    
-                    function failRecoveryCallback(err,results) {
-                        
-                        db.disconnect();
-                        
-                        if (err) {
-                            console.log('Recovery management failed for task ' + recovery_id + 
-                                        ', there was an error connecting to the database');
-                            console.log('Management failed while setting recovery ' + recovery_id + ' to FAILED.');
-                            return;
-                        }                             
-                    } // failRecoveryCallback        
-                    db.query(qry,params,failRecoveryCallback); 
-                                    
-                } // getObjectErrorHandler
-
-                function getObjectChunkHandler(chunk) {
-                    
-                    download.stream.write(chunk);
-                    download.no_chunks++;
-                    process.stdout.write("Downloaded " + download.no_chunks + " chunks\r");
-                          
-                } // getObjectChunkHandler
-
-                function getObjectDoneHandler(response) {
-                    
-                    process.stdout.write("\n"); // return feed to next line for console.log
-                    console.log('Prepare of ' + download.file_name + 
-                                ' completed with ' + download.no_chunks + 
-                                ' chunks transferred');  
-                                              
-                    download.stream.end();
-                    
-                    // update database, all downloads completed
-                    var qry = "UPDATE reclodb.recovery SET no_completed = 1, " +
-                                "state_progress = 100 " + // 100% complete
-                                "WHERE recovery_id = ?"; 
-                                                 
-                    var params = [recovery_id];
-                    
-                    function completeDownloadCallback(err,results) {
-                        
-                        db.disconnect();
-                        
-                        if (err) {
-                            console.log('Recovery management failed for task ' + recovery_id + 
-                                        ', there was an error connecting to the database');
-                            console.log('Management failed while setting recovery ' + recovery_id + ' to DOWNLOADED.');
-                            return;
-                        }                    
-                    } // completeDownloadCallback
-                    db.query(qry,params,completeDownloadCallback); 
-                                                                       
-                } // getObjectDoneHandler
+                } // handle_close
                 
-                // start download from s3
-                var request = s3.getObject(params);
-                request.on('error', getObjectErrorHandler);
-                request.on('httpData', getObjectChunkHandler);
-                request.on('httpDone', getObjectDoneHandler);
-                request.send();
+                // run child process for ec2-import-instance
+                var child = exec(cmd);
+                child.stdout.on('data',handle_stdout);
+                child.stderr.on('data',handle_stderr);
+                child.on('close',handle_close);               
+
             } // startDownloadCallback
             db.query(qry,params,startDownloadCallback);
             
@@ -506,13 +485,14 @@ function handleDownloaded(recovery_id,user_id,backup_id) {
                         
                         // query to use if successful
                         qry = "UPDATE reclodb.recovery SET conversion_id = ?, " +
-                          "instance_id = ?, recovery_state = ? WHERE " +
+                          "instance_id = ?, recovery_state = ?, file_size = ? WHERE " +
                           "recovery_id = ?";
                           
                         params = [
                             conversion_id,
                             instance_id,
                             'importing',
+                            file_size_in_bytes,
                             recovery_id
                         ];
                     }
