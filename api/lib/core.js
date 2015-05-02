@@ -8,6 +8,8 @@
 
 var DBConnection = require('./DBConnection.js');
 var bcrypt = require('bcrypt-nodejs'); // hashing
+var http = require('http');
+var bl = require('bl');
 
 module.exports.validateToken = function(token,validationCallback) {
 
