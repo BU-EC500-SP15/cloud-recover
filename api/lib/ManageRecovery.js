@@ -95,7 +95,7 @@ function connectionCallback(err) {
                     break;               
                     
                 case 'importing':
-                    handleImporting(recovery_id,user_id);
+                    handleImporting(recovery_id);
                     break;               
                                 
                 case 'imported':
@@ -488,8 +488,9 @@ function handleDownloaded(recovery_id,user_id,backup_id) {
                 };
                 
             function importInstanceCallback(err,data) {
+                
                 if (err) {
-                    console.log('Import instance error: ' + err,err.stack);
+                    console.log('ImportInstance error: ' + err,err.stack);
                     db.disconnect();
                     return;
                 }
@@ -541,7 +542,7 @@ function handleDownloaded(recovery_id,user_id,backup_id) {
  * HANDLE IMPORTING RECOVERY TASKS
  * -------------------------------------------------------------------------------------------------
  */
-function handleImporting(user_id,recovery_id) {
+function handleImporting(recovery_id) {
 
     console.log('Handling IMPORTING recovery task ' + recovery_id);
 
@@ -555,10 +556,12 @@ function handleImporting(user_id,recovery_id) {
             return;
         }
         
-        // get a list of current recovery tasks in progress
-        var qry = 
+        // get importing task (ec2-describe-conversion-tasks) for recovery_id
+        var qry = "SELECT conversion_id FROM reclodb.recovery WHERE recovery_id = ?";
+        
+        var params = [recovery_id];
 
-        function Callback(err,results) {
+        function getImportProgressCallback(err,results) {
         
             if (err) {
                 console.log('Recovery management failed for task ' + recovery_id + 
@@ -568,10 +571,66 @@ function handleImporting(user_id,recovery_id) {
                 return;
             }
             
-            // do something polite here
+            var conversion_id = results[0].conversion_id;
+            
+            // get progress of import task
+            var ec2 = new AWS.EC2();
+            
+            var params = {
+              ConversionTaskIds: [
+                conversion_id
+              ]
+            };
+            
+            function describeConversionTasksCallback(err,data) {
+                
+                if (err) {
+                    console.log('DescribeConversionTasks error: ' + err,err.stack);
+                    db.disconnect();
+                    return;
+                }
+                
+                // update database with conversion progress
+                var total_size = data.ConversionTasks[0].ImportInstance.Volumes[0].Image.Size;
+                var status = data.ConversionTasks[0].ImportInstance.Volumes[0].Status; // as string
+                
+                if (status != 'completed') { // should never reach 'completed' while in this state, but just in case
+                      
+                    var bytes_imported = Number(status.split("Downloaded ")[1]); // convert to integer
+                    var state_progress = Math.floor((bytes_imported / total_size) * 100);
+                }
+                else {
+                    
+                    var state_progress = 100;
+                }
+                
+                var qry = "UPDATE reclodb.recovery SET state_progress = ? WHERE recovery_id = ?";
+                
+                var params = [state_progress,recovery_id];
+                
+                function updateImportProgressCallback(err,results) {
+                    
+                    if (err) {
+                        console.log('Recovery management failed for task ' + recovery_id + 
+                                    ', there was an error connecting to the database');
+                        
+                        db.disconnect();
+                        return;
+                    }
+                    
+                    console.log('Updated import progress for recovery ' + recovery_id + '.\n' + 
+                                'Total progress: ' + state_progress);
+                    
+                    db.disconnect();                   
+                    
+                } // updateImportProgressCallback
+                db.query(qry,params,updateImportProgressCallback);
+                
+            } // describeConversionTasksCallback            
+            ec2.describeConversionTasks(params,describeConversionTasksCallback);
             
         } // getRecoveryTasksCallback
-        db.query(qry,getRecoveryTasksCallback);
+        db.query(qry,params,getImportProgressCallback);
     }
     var db = new DBConnection();
     db.connect(connectionCallback.bind(db));
