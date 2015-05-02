@@ -72,6 +72,7 @@
             this.button4.TabIndex = 21;
             this.button4.Text = "Refresh";
             this.button4.UseVisualStyleBackColor = false;
+            this.button4.Click += new System.EventHandler(this.button4_Click);
             // 
             // button3
             // 
@@ -82,6 +83,7 @@
             this.button3.TabIndex = 19;
             this.button3.Text = "Settings";
             this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
             // button2
             // 
@@ -105,6 +107,7 @@
             this.button1.TabIndex = 17;
             this.button1.Text = "Instances";
             this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // label2
             // 

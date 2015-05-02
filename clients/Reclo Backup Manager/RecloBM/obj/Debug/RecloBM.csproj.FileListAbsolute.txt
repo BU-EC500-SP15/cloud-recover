@@ -27,3 +27,6 @@ E:\Dropbox\Boston Univ\RecloBM\RecloBM\bin\Debug\System.Json.xml
 E:\Dropbox\Boston Univ\RecloBM\RecloBM\bin\Debug\System.Net.Http.Extensions.xml
 E:\Dropbox\Boston Univ\RecloBM\RecloBM\bin\Debug\System.Net.Http.Primitives.xml
 E:\Dropbox\Boston Univ\RecloBM\RecloBM\obj\Debug\RecloBM.Form3.resources
+E:\Dropbox\cloud-recover\clients\Reclo Backup Manager\RecloBM\bin\Debug\RecloBM.exe.config
+E:\Dropbox\cloud-recover\clients\Reclo Backup Manager\RecloBM\obj\Debug\RecloBM.exe
+E:\Dropbox\cloud-recover\clients\Reclo Backup Manager\RecloBM\obj\Debug\RecloBM.pdb

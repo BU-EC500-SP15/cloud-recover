@@ -10,34 +10,62 @@ namespace RecloBM
 {
     class DataManager
     {
+
+
+        private static string userID;
+        private static string token;
+        private static string tempKey;
+        private static string tempSecretKey;
+        private static string username;
+        private static JsonValue backupsList = "{\"error\":302}";
+        private static string destination = "Select Location...";
+        private static string source = "Select Drive...";
+        private static bool scheduledBackups = false;
+        private static int backupStatus = 0;
+        // private static string vhdName = "recloTMP.VHD";
+        private static string vhdName = "test.vhd";
         public static string cleanJSON(string input)
         {
             input = input.Remove(0, 1);
             input = input.Remove(input.Length - 1, 1);
             return input;
         }
-        
+
+
         public static bool userStatus()
         {
             string line = readFile();
             JsonValue json = JsonValue.Parse(line);
             Console.WriteLine(line);
             Console.WriteLine(json["token"]);
-          
-           if(json["token"].ToString() == "\"empty\"")
-           {
-               return false;
-           }
-           else
-           {
-               return true;
-           }
+
+            if (json["token"].ToString() == "\"empty\"")
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
         }
 
-        public static void addUser(string username, string token, string userid)
+        public static void addUser(string nusername, string ntoken, string nuserid)
         {
-            string userJSON = "{ \"username\":\"" + username + "\", \"token\":\""+ token+"\",\"userid\":\""+userid+"\"}";
-            System.IO.File.WriteAllText(@"userData.txt", userJSON);
+            username = nusername;
+            token = ntoken;
+            userID = nuserid;
+            //string userJSON = "{ \"username\":\"" + username + "\", \"token\":\""+ token+"\",\"userid\":\""+userid+"\"}";
+            //System.IO.File.WriteAllText(@"userData.txt", userJSON);
+        }
+
+        public static void addBackupsList(JsonValue backups)
+        {
+            backupsList = backups;
+        }
+
+        public static JsonValue getBackupslist()
+        {
+            return backupsList;
         }
 
         public static void clearUser()
@@ -45,6 +73,7 @@ namespace RecloBM
             string userJSON = "{\"username\":\"empty\", \"token\":\"empty\",\"userid\":\"empty\"}";
             System.IO.File.WriteAllText(@"userData.txt", userJSON);
         }
+
 
         private static string readFile()
         {
@@ -68,22 +97,68 @@ namespace RecloBM
 
         public static string getToken()
         {
-            JsonValue json = JsonValue.Parse(readFile());
-            return cleanJSON(json["token"].ToString());
+            //  JsonValue json = JsonValue.Parse(readFile());
+            // return cleanJSON(json["token"].ToString());
+            return token;
         }
 
         public static string getUsername()
         {
-            JsonValue json = JsonValue.Parse(readFile());
-            return cleanJSON(json["username"].ToString());
+            // JsonValue json = JsonValue.Parse(readFile());
+            //return cleanJSON(json["username"].ToString());
+            return username;
         }
 
         public static string getUserID()
         {
-            JsonValue json = JsonValue.Parse(readFile());
-            return cleanJSON(json["userid"].ToString());
+            //  JsonValue json = JsonValue.Parse(readFile());
+            // return cleanJSON(json["userid"].ToString());
+            return userID;
+        }
+
+        public static void setDestination(string ndestination)
+        {
+            destination = ndestination;
+        }
+
+        public static void setSource(string nsource)
+        {
+            source = nsource;
+        }
+
+        public static string getDestination()
+        {
+            return destination;
+        }
+
+        public static string getSource()
+        {
+            return source;
+        }
+
+        public static void setScheduledBackups(bool input)
+        {
+            scheduledBackups = input;
+        }
+
+        public static bool getScheduledBackups()
+        {
+            return scheduledBackups;
+        }
+
+        public static void setBackupStatus(int nb)
+        {
+            backupStatus = nb;
+        }
+
+        public static int getBackupStatus()
+        {
+            return backupStatus;
+        }
+        public static string getVHDName()
+        {
+            return vhdName;
         }
     }
-
   
 }

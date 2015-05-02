@@ -64,6 +64,7 @@
             this.loginBTN.TabIndex = 6;
             this.loginBTN.Text = "Login";
             this.loginBTN.UseVisualStyleBackColor = false;
+            this.loginBTN.Click += new System.EventHandler(this.loginBTN_Click);
             // 
             // logErrorLB
             // 
