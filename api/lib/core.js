@@ -79,7 +79,7 @@ module.exports.getAccessKeys = function(callback) {
         response.pipe(bl(getKeysCallback));
 
     }; // handleResponse
-    http.get(this.url,handleResponse);    
+    http.get(url,handleResponse);    
     
 };
 
