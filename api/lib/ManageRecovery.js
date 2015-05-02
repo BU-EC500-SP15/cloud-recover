@@ -14,9 +14,9 @@
  * DOWNLOADING  - ( - ) downloading full and incremental backups to temporary storage for import
  * DOWNLOADED   - (35%) ready to merge downloaded backups into one VHD
  * IMPORTING    - ( - ) importing backup into EC2, see progress using ec2-describe-conversion-tasks
- * IMPORTED     - (55%) sucessfully imported into EC2, ready to start conversion
+ * IMPORTED     - (55%) #deprecated# sucessfully imported into EC2, ready to start conversion
  * CONVERTING   - ( - ) in-progress conversion from VHD to EC2 AMI instance (started automatically)
- * CONVERTED    - (90%) conversion task finished (determined by successfully attempting to start instance)
+ * CONVERTED    - (90%) conversion task finished (attempting to start instance)
  * FINISHING    - ( - ) starting new instance
  * FINISHED     - (100) new instance started, recovery process complete
  * FAILED       - ( - ) recovery failed at some point during the download/import/conversion process
@@ -37,7 +37,7 @@ console.log('Starting recovery management at ' + ts);
 var progress = {downloading: 10,
                 downloaded: 35,
                 imported: 55,
-                converted: 90,
+                converted: 80,
                 finished: 100};
 
 /* -------------------------------------------------------------------------------------------------
@@ -53,7 +53,8 @@ function connectionCallback(err) {
     }
     
     // get a list of current recovery tasks in progress
-    var qry = "SELECT recovery_id, user_id, backup_id, recovery_state FROM reclodb.recovery WHERE " +
+    var qry = "SELECT recovery_id, user_id, backup_id, " + 
+              "conversion_id, instance_id, recovery_state FROM reclodb.recovery WHERE " +
               "recovery_state != 'finished' AND " +
               "recovery_state != 'failed' AND " + 
               "recovery_status = 'A'";
@@ -75,10 +76,12 @@ function connectionCallback(err) {
         // update the progress and advance each recovery task
         for (i = 0; i < results.length; i++) {
             
-            var this_state  = results[i].recovery_state;
-            var user_id     = results[i].user_id;
-            var recovery_id = results[i].recovery_id;
-            var backup_id   = results[i].backup_id;
+            var this_state    = results[i].recovery_state;
+            var user_id       = results[i].user_id;
+            var recovery_id   = results[i].recovery_id;
+            var backup_id     = results[i].backup_id;
+            var conversion_id = results[i].conversion_id;
+            var instance_id   = results[i].instance_id;
             
             switch (this_state) {
                 
@@ -95,19 +98,15 @@ function connectionCallback(err) {
                     break;               
                     
                 case 'importing':
-                    handleImporting(recovery_id);
-                    break;               
-                                
-                case 'imported':
-                    handleImported(user_id,recovery_id);
-                    break;               
+                    handleImporting(recovery_id,conversion_id);
+                    break;                          
                                 
                 case 'converting':
-                    handleConverting(user_id,recovery_id);
+                    handleConverting(recovery_id,conversion_id);
                     break;               
                                 
                 case 'converted':
-                    handleConverted(user_id,recovery_id);
+                    handleConverted(recovery_id,instance_id);
                     break;               
                                 
                 case 'finishing':
@@ -542,7 +541,7 @@ function handleDownloaded(recovery_id,user_id,backup_id) {
  * HANDLE IMPORTING RECOVERY TASKS
  * -------------------------------------------------------------------------------------------------
  */
-function handleImporting(recovery_id) {
+function handleImporting(recovery_id,conversion_id) {
 
     console.log('Handling IMPORTING recovery task ' + recovery_id);
 
@@ -556,121 +555,75 @@ function handleImporting(recovery_id) {
             return;
         }
         
-        // get importing task (ec2-describe-conversion-tasks) for recovery_id
-        var qry = "SELECT conversion_id FROM reclodb.recovery WHERE recovery_id = ?";
+        // get progress of import task
+        var ec2 = new AWS.EC2();
         
-        var params = [recovery_id];
-
-        function getImportProgressCallback(err,results) {
+        var params = {
+          ConversionTaskIds: [
+            conversion_id
+          ]
+        };
         
+        function describeConversionTasksCallback(err,data) {
+            
             if (err) {
-                console.log('Recovery management failed for task ' + recovery_id + 
-                            ', there was an error connecting to the database');
-                
+                console.log('DescribeConversionTasks error: ' + err,err.stack);
                 db.disconnect();
                 return;
             }
             
-            var conversion_id = results[0].conversion_id;
+            // update database with conversion progress
+            var total_size = data.ConversionTasks[0].ImportInstance.Volumes[0].Image.Size;
+            var status = data.ConversionTasks[0].ImportInstance.Volumes[0].Status; // as string
             
-            // get progress of import task
-            var ec2 = new AWS.EC2();
-            
-            var params = {
-              ConversionTaskIds: [
-                conversion_id
-              ]
-            };
-            
-            function describeConversionTasksCallback(err,data) {
+            if (status == 'completed') {
+                
+                // should never be anything but 'active' while in this state, but just in case
+                var state_progress = 100;   
+            }
+            else { 
+                  
+                var status_message = data.ConversionTasks[0].ImportInstance.Volumes[0].StatusMessage;
+                var bytes_imported = Number(status_message.split("Downloaded ")[1]); // convert to integer
+                var state_progress = Math.floor((bytes_imported / total_size) * 100);
+            }
+
+            // query to run if importing is not yet finished
+            var qry = "UPDATE reclodb.recovery SET state_progress = ? WHERE recovery_id = ?";
+            var params = [state_progress,recovery_id];
+                               
+            if (state_progress == 100) {
+                    
+                // import completed, move on to converting
+                var recovery_state = 'converting';
+                var total_progress = progress.imported;
+                var new_state_progress = 0;
+                
+                qry = "UPDATE reclodb.recovery SET state_progress = ?, recovery_state = ?, " +
+                      "total_progress = ? WHERE recovery_id = ?";
+                params = [new_state_progress, recovery_state, total_progress, recovery_id];
+            }
+
+            function updateImportProgressCallback(err,results) {
                 
                 if (err) {
-                    console.log('DescribeConversionTasks error: ' + err,err.stack);
+                    console.log('Recovery management failed for task ' + recovery_id + 
+                                ', there was an error connecting to the database');
+                    
                     db.disconnect();
                     return;
                 }
                 
-                // update database with conversion progress
-                var total_size = data.ConversionTasks[0].ImportInstance.Volumes[0].Image.Size;
-                var status = data.ConversionTasks[0].ImportInstance.Volumes[0].Status; // as string
+                console.log('Updated import progress for recovery ' + recovery_id);
+                console.log('Total progress: ' + state_progress);
                 
-                if (status != 'completed') { // should never reach 'completed' while in this state, but just in case
-                      
-                    var bytes_imported = Number(status.split("Downloaded ")[1]); // convert to integer
-                    var state_progress = Math.floor((bytes_imported / total_size) * 100);
-                }
-                else {
-                    
-                    var state_progress = 100;
-                }
+                db.disconnect();                   
                 
-                var qry = "UPDATE reclodb.recovery SET state_progress = ? WHERE recovery_id = ?";
-                
-                var params = [state_progress,recovery_id];
-                
-                function updateImportProgressCallback(err,results) {
-                    
-                    if (err) {
-                        console.log('Recovery management failed for task ' + recovery_id + 
-                                    ', there was an error connecting to the database');
-                        
-                        db.disconnect();
-                        return;
-                    }
-                    
-                    console.log('Updated import progress for recovery ' + recovery_id + '.\n' + 
-                                'Total progress: ' + state_progress);
-                    
-                    db.disconnect();                   
-                    
-                } // updateImportProgressCallback
-                db.query(qry,params,updateImportProgressCallback);
-                
-            } // describeConversionTasksCallback            
-            ec2.describeConversionTasks(params,describeConversionTasksCallback);
+            } // updateImportProgressCallback
+            db.query(qry,params,updateImportProgressCallback);
             
-        } // getRecoveryTasksCallback
-        db.query(qry,params,getImportProgressCallback);
-    }
-    var db = new DBConnection();
-    db.connect(connectionCallback.bind(db));
-}
-
-/* -------------------------------------------------------------------------------------------------
- * HANDLE IMPORTED RECOVERY TASKS
- * -------------------------------------------------------------------------------------------------
- */
-function handleImported(user_id,recovery_id) {
-
-    console.log('Handling IMPORTED recovery task ' + recovery_id);
-
-    function connectionCallback(err) {
-
-        if (err) {
-            console.log('Recovery management failed for task ' + recovery_id + 
-                        ', Unable to connect to the database');
-            
-            db.disconnect();
-            return;
-        }
-        
-        // get a list of current recovery tasks in progress
-        var qry = 
-
-        function Callback(err,results) {
-        
-            if (err) {
-                console.log('Recovery management failed for task ' + recovery_id + 
-                            ', there was an error connecting to the database');
-                
-                db.disconnect();
-                return;
-            }
-            
-            // do something polite here
-            
-        } // getRecoveryTasksCallback
-        db.query(qry,getRecoveryTasksCallback);
+        } // describeConversionTasksCallback            
+        ec2.describeConversionTasks(params,describeConversionTasksCallback);
     }
     var db = new DBConnection();
     db.connect(connectionCallback.bind(db));
@@ -680,7 +633,7 @@ function handleImported(user_id,recovery_id) {
  * HANDLE CONVERTING RECOVERY TASKS
  * -------------------------------------------------------------------------------------------------
  */
-function handleConverting(user_id,recovery_id) {
+function handleConverting(recovery_id,conversion_id) {
 
     console.log('Handling CONVERTING recovery task ' + recovery_id);
 
@@ -694,23 +647,87 @@ function handleConverting(user_id,recovery_id) {
             return;
         }
         
-        // get a list of current recovery tasks in progress
-        var qry = 
-
-        function Callback(err,results) {
+        // get progress of conversion task
+        var ec2 = new AWS.EC2();
         
+        var params = {
+          ConversionTaskIds: [
+            conversion_id
+          ]
+        };
+        
+        function describeConversionTasksCallback(err,data) {
+            
             if (err) {
-                console.log('Recovery management failed for task ' + recovery_id + 
-                            ', there was an error connecting to the database');
-                
+                console.log('DescribeConversionTasks error: ' + err,err.stack);
                 db.disconnect();
                 return;
             }
             
-            // do something polite here
+            var total_size = data.ConversionTasks[0].ImportInstance.Volumes[0].Image.Size;
+            var conversion_state = data.ConversionTasks[0].State;
+
+            if (conversion_state == 'completed') {
+                
+                // volume converted, move to next state
+                var state_progress = 100;   
+            }
+            else {
+                
+                // check conversion progress
+                var status_message = data.ConversionTasks[0].StatusMessage;
+                
+                if (status_message == 'Pending') {
+                    
+                    // converting import into AMI volume, check number of bytes converted
+                    var bytes_converted = data.ConversionTasks[0].ImportInstance.Volumes[0].BytesConverted;
+                    var state_progress = Math.floor((bytes_converted / total_size) * 50); // 50% of conversion process
+                }
+                else {
+                    
+                    // conversion into AMI volume complete, check conversion percentage
+                    var percentage_converted = data.ConversionTasks[0].StatusMessage.split("Progress: ")[1];
+                    percentage_converted = Number(percentage_converted.split('%')[0]);
+                    var state_progress = Math.floor(percentage_converted / 2) + 50;          
+                }
+            } // if (conversion_state)
             
-        } // getRecoveryTasksCallback
-        db.query(qry,getRecoveryTasksCallback);
+            // query to run if conversion is not yet finished
+            var qry = "UPDATE reclodb.recovery SET state_progress = ? WHERE recovery_id = ?";
+            var params = [state_progress,recovery_id];
+                               
+            if (state_progress == 100) {
+                    
+                // import completed, move on to converted
+                var recovery_state = 'converted';
+                var total_progress = progress.converted;
+                var new_state_progress = 0;
+                
+                qry = "UPDATE reclodb.recovery SET state_progress = ?, recovery_state = ?, " +
+                      "total_progress = ? WHERE recovery_id = ?";
+                params = [new_state_progress, recovery_state, total_progress, recovery_id];
+            }
+
+            function updateImportProgressCallback(err,results) {
+                
+                if (err) {
+                    console.log('Recovery management failed for task ' + recovery_id + 
+                                ', there was an error connecting to the database');
+                    
+                    db.disconnect();
+                    return;
+                }
+                
+                console.log('Updated conversion progress for recovery ' + recovery_id);
+                console.log('Total progress: ' + state_progress);
+                
+                db.disconnect();                   
+                
+            } // updateImportProgressCallback
+            db.query(qry,params,updateImportProgressCallback);
+            
+        } // describeConversionTasksCallback            
+        ec2.describeConversionTasks(params,describeConversionTasksCallback);
     }
     var db = new DBConnection();
     db.connect(connectionCallback.bind(db));
@@ -720,7 +737,7 @@ function handleConverting(user_id,recovery_id) {
  * HANDLE CONVERTED RECOVERY TASKS
  * -------------------------------------------------------------------------------------------------
  */
-function handleConverted(user_id,recovery_id) {
+function handleConverted(recovery_id,conversion_id) {
 
     console.log('Handling CONVERTED recovery task ' + recovery_id);
 
@@ -747,7 +764,7 @@ function handleConverted(user_id,recovery_id) {
                 return;
             }
             
-            // do something polite here
+            // attempt to start instance
             
         } // getRecoveryTasksCallback
         db.query(qry,getRecoveryTasksCallback);
