@@ -412,7 +412,7 @@ function handleDownloaded(recovery_id,user_id,backup_id) {
 
             // other parameters
             var region   = 'us-west-2';
-            var zone     = 'us-west-2c';
+            var zone     = 'us-west-2a';
             var subnet   = 'subnet-b4f42ed1';
             var group    = 'reclo-windows';
             var group_id = 'sg-4efda52b'; // reclo-windows
