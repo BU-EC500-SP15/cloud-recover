@@ -148,7 +148,7 @@ router.post('/:user_id/:backup_id', function(req,res) {
         }
         
         // get current recovery progress
-        var qry = "SELECT total_progress, current_state, state_progress FROM " + 
+        var qry = "SELECT total_progress, recovery_state, state_progress FROM " + 
                   "reclodb.recovery WHERE recovery_id = ?";
         
         var params = [recovery_id];
@@ -162,7 +162,7 @@ router.post('/:user_id/:backup_id', function(req,res) {
                 return;
             }
             var total_progress = results[0].total_progress;
-            var current_state = results[0].current_state;
+            var current_state = results[0].recovery_state;
             var state_progress = results[0].state_progress;     
             
             res.status(200).json({message: 'Recovery in-progress',
