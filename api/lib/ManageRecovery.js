@@ -83,7 +83,7 @@ function connectionCallback(err) {
             switch (this_state) {
                 
                 case 'pending':
-                    handlePending(user_id,recovery_id,backup_id);
+                    handlePending(recovery_id,user_id,backup_id);
                     break;               
                                 
                 case 'downloading':
@@ -91,11 +91,11 @@ function connectionCallback(err) {
                     break;               
                                 
                 case 'downloaded':
-                    handleDownloaded(recovery_id);
+                    handleDownloaded(recovery_id,user_id,backup_id);
                     break;               
                     
                 case 'importing':
-                    handleImporting(user_id,recovery_id);
+                    handleImporting(recovery_id,user_id);
                     break;               
                                 
                 case 'imported':
@@ -125,7 +125,7 @@ db.connect(connectionCallback.bind(db));
  * HANDLE PENDING RECOVERY TASKS
  * -------------------------------------------------------------------------------------------------
  */
-function handlePending(user_id,recovery_id,backup_id) {
+function handlePending(recovery_id,user_id,backup_id) {
 
     console.log('Handling PENDING recovery task ' + recovery_id);
 
@@ -255,6 +255,7 @@ function handlePending(user_id,recovery_id,backup_id) {
 
                 function getObjectDoneHandler(response) {
                     
+                    process.stdout.write("\n"); // return feed to next line for console.log
                     console.log('Prepare of ' + download.file_name + 
                                 ' completed with ' + download.no_chunks + 
                                 ' chunks transferred');  
@@ -289,7 +290,7 @@ function handlePending(user_id,recovery_id,backup_id) {
                 request.on('httpData', getObjectChunkHandler);
                 request.on('httpDone', getObjectDoneHandler);
                 request.send();
-            }  
+            } // startDownloadCallback
             db.query(qry,params,startDownloadCallback);
             
         } // getRecoveryTasksCallback
@@ -360,7 +361,7 @@ function handleDownloading(recovery_id) {
                         return;
                     }
                     
-                    console.log('Download complete for recovery ' + recovery_id);
+                    console.log('Download completed for recovery ' + recovery_id);
                     db.disconnect();
                                    
                 } // updateDownloadingProgress
@@ -368,7 +369,7 @@ function handleDownloading(recovery_id) {
             }
             else {
                 
-                console.log('Download still in-progress.');
+                console.log('Download(s) still in-progress.');
                 db.disconnect();
             } // if
             
@@ -383,82 +384,9 @@ function handleDownloading(recovery_id) {
  * HANDLE DOWNLOADED RECOVERY TASKS
  * -------------------------------------------------------------------------------------------------
  */
-function handleDownloaded(recovery_id) {
+function handleDownloaded(recovery_id,user_id,backup_id) {
 
     console.log('Handling DOWNLOADED recovery task ' + recovery_id);
-
-    function connectionCallback(err) {
-
-        if (err) {
-            console.log('Recovery management failed for task ' + recovery_id + ', Unable to connect to the database');
-            db.disconnect();
-            return;
-        }
-        
-        // get a list of current recovery tasks in progress
-        var qry = "UPDATE reclodb.recovery SET recovery_state = 'merging', state WHERE recovery_id = ?";
-        var params = [recovery_id];
-
-        function startImportCallback(err,results) {
-        
-            if (err) {
-                console.log('Recovery management failed for task ' + recovery_id + ', there was an error connecting to the database');
-                return;
-            }
-            
-            // begin import task here
-            var import_task = 'foo';
-            
-            
-        } // getRecoveryTasksCallback
-        db.query(qry,params,startImportCallback);
-    }
-    var db = new DBConnection();
-    db.connect(connectionCallback.bind(db));
-}
-
-/* -------------------------------------------------------------------------------------------------
- * HANDLE MERGING RECOVERY TASKS
- * -------------------------------------------------------------------------------------------------
- */
-/*function handleMerging(user_id,recovery_id) {
-
-    console.log('Handling MERGING recovery task ' + recovery_id);
-
-    function connectionCallback(err) {
-
-        if (err) {
-            console.log('Recovery management failed for task ' + recovery_id + ', Unable to connect to the database');
-            db.disconnect();
-            return;
-        }
-        
-        // get a list of current recovery tasks in progress
-        var qry = 
-
-        function Callback(err,results) {
-        
-            if (err) {
-                console.log('Recovery management failed for task ' + recovery_id + ', there was an error connecting to the database');
-                return;
-            }
-            
-            // do something here
-            
-        } // getRecoveryTasksCallback
-        db.query(qry,getRecoveryTasksCallback);
-    }
-    var db = new DBConnection();
-    db.connect(connectionCallback.bind(db));
-}
-
-/* -------------------------------------------------------------------------------------------------
- * HANDLE MERGED RECOVERY TASKS
- * -------------------------------------------------------------------------------------------------
- */
-/*function handleMerged(user_id,recovery_id) {
-
-    console.log('Handling MERGED recovery task ' + recovery_id);
 
     function connectionCallback(err) {
 
@@ -470,23 +398,140 @@ function handleDownloaded(recovery_id) {
             return;
         }
         
-        // get a list of current recovery tasks in progress
-        var qry = 
+        // get name of backup to import
+        var qry = "SELECT file_name FROM reclodb.backups WHERE backup_id = ?";
+                  
+        var params = [backup_id];
 
-        function Callback(err,results) {
+        function startImportCallback(err,results) {
         
             if (err) {
-                console.log('Recovery management failed for task ' + recovery_id + 
+                console.log('Recovery management failed for task ' + recovery_id +
                             ', there was an error connecting to the database');
                 
                 db.disconnect();
                 return;
             }
             
-            // do something here
+            var file_name = results[0].file_name;
+
+            // bucket to hold import
+            var bucket = 'reclo-imported-vms';
+            var key = user_id + '/' + file_name;
+
+            // get final file size
+            var path = '/backups-tmp/' + key;
+            var stats = fs.statSync(path);
+            var file_size_in_bytes = stats["size"];
+
+            // determine volume size (in 100GB increments, up to 2TB)
+            var vol_size = 100; // defaulting to 100GB for now
+
+            // get pre-signed URL for s3 manifest bucket
+            var s3 = new AWS.S3();
+            
+            var params = {
+                Bucket : bucket,
+                Key: key,
+                Expires: 21600   // 6 hours for upload
+            }
+            var url = s3.getSignedUrl('putObject',params);
+
+            // get user data to include with new instance
+            // Will need to read this from a local file that we maintain
+            // as part of our repository
+            var user_data = 'foo';
+
+            // other parameters
+            var zone    = 'us-west-2a';
+            var subnet  = 'subnet-b4f42ed1';
+            var group   = 'reclo-windows';
+            var group_id = 'sg-4efda52b'; // reclo-windows
+
+            // initiate ec2-import-instance
+            var ec2 = new AWS.EC2();
+            
+            var params = {
+                Platform: 'Windows',
+                Description: 'Recovered instance for client ' + user_id,
+                DiskImages: [
+                    {
+                      Image: {
+                        Bytes: file_size_in_bytes,
+                        Format: 'VHD',
+                        ImportManifestUrl: url
+                      },
+                      Volume: {
+                        Size: vol_size
+                      }
+                    }
+                  ],
+                  LaunchSpecification: {
+                    Architecture: 'x86_64',
+                    InstanceInitiatedShutdownBehavior: 'stop',
+                    InstanceType: 't2.micro', // smalest and cheapest, for now
+                    GroupIds: [
+                        group_id
+                    ],
+                    GroupNames: [
+                        group
+                    ], 
+                    Placement: {
+                      AvailabilityZone: zone,
+                      GroupName: group
+                    },
+                    SubnetId: subnet,
+                    UserData: {
+                      Data: user_data
+                    }
+                  }
+                };
+                
+            function importInstanceCallback(err,data) {
+                if (err) {
+                    console.log('Import instance error: ' + err,err.stack);
+                    db.disconnect();
+                    return;
+                }
+                
+                var conversion_id = data.ConversionTask.ConversionTaskId;
+                var instance_id = data.ConversionTask.ImportInstance.InstanceId;
+                
+                console.log('Starting import task for recovery ' + recovery_id);
+                
+                // update database
+                var qry = "UPDATE reclodb.recovery SET conversion_id = ?, " +
+                          "instance_id = ?, recovery_state = ? WHERE " +
+                          "recovery_id = ?";
+                          
+                var params = [
+                        conversion_id,
+                        instance_id,
+                        'importing',
+                        recovery_id
+                    ];
+                
+                function updateRecoveryStateCallback(err,results) {
+                    
+                    if (err) {
+                        console.log('Recovery management failed for task ' + recovery_id +
+                                    ', there was an error connecting to the database');
+                        
+                        db.disconnect();
+                        return;
+                    }
+                    
+                    console.log('Importing instance ' + instance_id);
+                    db.disconnect();  
+    
+                } // updateRecoveryStateCallback
+                db.query(qry,params,updateRecoveryStateCallback);
+                
+            } // importInstanceCallback
+            ec2.importInstance(params,importInstanceCallback);          
             
         } // getRecoveryTasksCallback
-        db.query(qry,getRecoveryTasksCallback);
+        db.query(qry,params,startImportCallback);
     }
     var db = new DBConnection();
     db.connect(connectionCallback.bind(db));
