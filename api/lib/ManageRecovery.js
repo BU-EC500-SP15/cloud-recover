@@ -26,6 +26,7 @@
 var DBConnection = require('../lib/DBConnection.js');
 var corelib = require('../lib/core.js');
 var fs = require('fs');
+var exec = require('child_process').exec;
 
 var AWS = require('aws-sdk');
 AWS.config.region = 'us-west-2';
@@ -416,25 +417,14 @@ function handleDownloaded(recovery_id,user_id,backup_id) {
 
             // bucket to hold import
             var bucket = 'reclo-imported-vms';
-            var key = user_id + '/' + file_name;
 
             // get final file size
-            var path = '/backups-tmp/' + key;
-            var stats = fs.statSync(path);
+            var path_to_backup = '/backups-tmp/' + user_id + '/' + file_name;
+            var stats = fs.statSync(path_to_backup);
             var file_size_in_bytes = stats["size"];
 
             // determine volume size (in 100GB increments, up to 2TB)
             var vol_size = 100; // defaulting to 100GB for now
-
-            // get pre-signed URL for s3 manifest bucket
-            var s3 = new AWS.S3();
-            
-            var params = {
-                Bucket : bucket,
-                Key: key,
-                Expires: 21600   // 6 hours for upload
-            }
-            var url = s3.getSignedUrl('putObject',params);
 
             // get user data to include with new instance
             // Will need to read this from a local file that we maintain
@@ -442,94 +432,120 @@ function handleDownloaded(recovery_id,user_id,backup_id) {
             var user_data = 'foo';
 
             // other parameters
-            var zone    = 'us-west-2a';
-            var subnet  = 'subnet-b4f42ed1';
-            var group   = 'reclo-windows';
+            var region   = 'us-west-2';
+            var zone     = 'us-west-2c';
+            var subnet   = 'subnet-b4f42ed1';
+            var group    = 'reclo-windows';
             var group_id = 'sg-4efda52b'; // reclo-windows
+            var type     = 't2.micro';
 
-            // initiate ec2-import-instance
-            var ec2 = new AWS.EC2();
-            
-            var params = {
-                Platform: 'Windows',
-                Description: 'Recovered instance for client ' + user_id,
-                DiskImages: [
-                    {
-                      Image: {
-                        Bytes: file_size_in_bytes,
-                        Format: 'VHD',
-                        ImportManifestUrl: url
-                      },
-                      Volume: {
-                        Size: vol_size
-                      }
-                    }
-                  ],
-                  LaunchSpecification: {
-                    Architecture: 'x86_64',
-                    InstanceInitiatedShutdownBehavior: 'stop',
-                    InstanceType: 't2.micro', // smalest and cheapest, for now
-                    GroupIds: [
-                        group_id
-                    ],
-                    GroupNames: [
-                        group
-                    ], 
-                    Placement: {
-                      AvailabilityZone: zone,
-                      GroupName: group
-                    },
-                    SubnetId: subnet,
-                    UserData: {
-                      Data: user_data
-                    }
-                  }
-                };
-                
-            function importInstanceCallback(err,data) {
+            // get ACCESS_KEY and SECRET_KEY for AWS resources
+            function getAccessKeysCallback(err,data) {
                 
                 if (err) {
-                    console.log('ImportInstance error: ' + err,err.stack);
+                    
+                    console.log('getAccessKeys Error: ' + err);
                     db.disconnect();
                     return;
                 }
                 
-                var conversion_id = data.ConversionTask.ConversionTaskId;
-                var instance_id = data.ConversionTask.ImportInstance.InstanceId;
+                var ACCESS_KEY = data.AccessKey;
+                var SECRET_KEY = data.SecretKey;
                 
-                console.log('Starting import task for recovery ' + recovery_id);
+                // Build ec2-import-instance CLI command
+                var cmd = 'ec2-import-instance' + 
+                  ' -O ' + ACCESS_KEY + ' -W ' + SECRET_KEY + 
+                  ' -o ' + ACCESS_KEY + ' -w ' + SECRET_KEY + 
+                  ' -t ' + type + ' -f VHD -s ' + vol_size + 
+                  ' -a x86_64 -b ' + bucket +
+                  ' --group ' + group + ' --region ' + region +
+                  ' -z ' + zone + ' --subnet ' + subnet + 
+                  ' ' + path_to_backup;
                 
-                // update database
-                var qry = "UPDATE reclodb.recovery SET conversion_id = ?, " +
+                // used with child process  
+                var buffer = '';
+                var valid_output = true; 
+                var failed = false; 
+                var qry = '';
+                var params = [];
+                  
+                // child process handlers
+                function handle_stdout(data) {
+                     
+                    if (data.indexOf('Uploading') != -1) { // end of useful stdout
+                        valid_output = false;
+                    }
+                
+                    // buffer the valid stdout for parsing later
+                    if (valid_output) {
+                        buffer = buffer + data.toString();
+                    }
+                } // handle_stdout
+                
+                function handle_stderr(err) {
+                    
+                    console.log('ec2-import-instance Error: ' + err);
+                    failed = true;
+                    
+                    // query to use if failed
+                    qry = "UPDATE reclodb.recovery SET recovery_state = 'failed' WHERE " +
+                              "recovery_id = ?";
+                              
+                    params = [recovery_id];                
+                } // handle_stderr
+                
+                function handle_close(code) {
+                    
+                    console.log('ec2-import-instance closed with code ' + code);
+                    
+                    if (!failed) {
+                    
+                        // parse the buffer for ids
+                        var instance_id   = 'i-' + buffer.split('\ti-')[1].substr(0,8);
+                        var conversion_id = 'import-i-' + buffer.split('import-i-')[1].substr(0,8);
+                        
+                        // query to use if successful
+                        qry = "UPDATE reclodb.recovery SET conversion_id = ?, " +
                           "instance_id = ?, recovery_state = ? WHERE " +
                           "recovery_id = ?";
                           
-                var params = [
-                        conversion_id,
-                        instance_id,
-                        'importing',
-                        recovery_id
-                    ];
-                
-                function updateRecoveryStateCallback(err,results) {
-                    
-                    if (err) {
-                        console.log('Recovery management failed for task ' + recovery_id +
-                                    ', there was an error connecting to the database');
-                        
-                        db.disconnect();
-                        return;
+                        params = [
+                            conversion_id,
+                            instance_id,
+                            'importing',
+                            recovery_id
+                        ];
                     }
                     
-                    console.log('Importing instance ' + instance_id);
-                    db.disconnect();  
-    
-                } // updateRecoveryStateCallback
-                db.query(qry,params,updateRecoveryStateCallback);
+                    function updateRecoveryStateCallback(err,results) {
+                        
+                        if (err) {
+                            console.log('Recovery management failed for task ' + recovery_id +
+                                        ', there was an error connecting to the database');
+                            
+                            db.disconnect();
+                            return;
+                        }
+                        
+                        if (!failed) {
+                            console.log('Importing instance ' + instance_id);   
+                        }
+                        db.disconnect();  
+        
+                    } // updateRecoveryStateCallback
+                    db.query(qry,params,updateRecoveryStateCallback);
+                    
+                } // handle_close
                 
-            } // importInstanceCallback
-            ec2.importInstance(params,importInstanceCallback);          
-            
+                // run child process for ec2-import-instance
+                var child = exec(cmd);
+                child.stdout.on('data',handle_stdout);
+                child.stderr.on('data',handle_stderr);
+                child.on('close',handle_close);
+                
+            } // getAccessKeysCallback
+            corelib.getAccessKeys(getAccessKeysCallback);
+                        
         } // getRecoveryTasksCallback
         db.query(qry,params,startImportCallback);
     }
