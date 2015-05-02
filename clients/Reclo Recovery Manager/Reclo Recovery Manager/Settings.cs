@@ -16,5 +16,21 @@ namespace Reclo_Recovery_Manager
         {
             InitializeComponent();
         }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            // open Backups
+            this.Hide();
+            Backups f = new Backups();
+            f.Show();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            // open my instances
+            this.Hide();
+            MyInstances f = new MyInstances();
+            f.Show();
+        }
     }
 }
