@@ -32,7 +32,7 @@ DBConnection.prototype.connect = function(connectionCallback) {
                 return;
             }
 
-            var pw = data.toString().slice(5);
+            var pw = data.toString().split(',')[0].substr(6); // first pw stored in userdata
 
             // connect to ReClo databse
             that.db = mysql.createConnection({
