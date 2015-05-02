@@ -46,7 +46,42 @@ module.exports.validateToken = function(token,validationCallback) {
 
     var db = new DBConnection();
     db.connect(checkForActiveToken.bind(db));
-}
+};
+
+module.exports.getAccessKeys = function(callback) {
+    
+    var host = 'reclodb.ctng2ag7pnrb.us-west-2.rds.amazonaws.com';
+    var url = 'http://169.254.169.254/latest/user-data';
+
+    // get the AWS ACCESS_KEY and SECRET_KEY from userdata
+    function handleResponse(response) {
+
+        // connect to MySQL database
+        function getKeysCallback(err,data) {
+
+            if (err) {
+                callback(err,null);
+                return;
+            }
+
+            var keys = data.toString().split(',');
+            var ACCESS_KEY = keys[1].substr(11); // second element in userdata
+            var SECRET_KEY = keys[2].substr(11); // third element in userdata
+            
+            var res = {
+                AccessKey : ACCESS_KEY,
+                SecretKey : SECRET_KEY
+            };
+
+            callback(null,res);
+
+        }; // connectToDB
+        response.pipe(bl(getKeysCallback));
+
+    }; // handleResponse
+    http.get(this.url,handleResponse);    
+    
+};
 
 module.exports.createTimestamp = function() {
 	// creates a mysql formatted datetime string
