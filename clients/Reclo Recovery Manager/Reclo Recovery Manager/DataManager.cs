@@ -74,7 +74,7 @@ namespace RecloBM
             instancesList = instances;
         }
 
-        public static JsonValue getInstanceslist()
+        public static JsonValue getInstancesList()
         {
             return instancesList;
         }

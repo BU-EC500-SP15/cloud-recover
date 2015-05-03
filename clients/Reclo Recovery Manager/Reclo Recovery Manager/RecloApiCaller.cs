@@ -86,20 +86,16 @@ public class RecloApiCaller
 
     public static void getInstances(string userID, string token, Action<string> callBack)
     {
-        string newURL = recoveryURL + userID + "?token=" + token;
+        string newURL = recoveryURL + instancesURL+ userID + "?token=" + token;
         HttpMethods.httpGET(newURL, callBack);
     }
 
 
 
-     public static void startRecovery(string userID,string token,string fileName, string fileSize, Action<string> callBack)
+    public static void startRecovery(string userID, string token, string backup_id,  Action<string> callBack)
     {
-            string newURL = backupsURL+userID+"?token="+token;
-               IEnumerable<KeyValuePair<string, string>> nameValueCollection = new[] 
-            {
-                new KeyValuePair<string, string>("file_name", fileName),
-                new KeyValuePair<string, string>("file_size", fileSize),
-            };
+            string newURL = recoveryURL+userID+"/"+backup_id+"?token="+token;
+            IEnumerable<KeyValuePair<string, string>> nameValueCollection = null;
             
             HttpMethods.httpPOST(nameValueCollection, newURL, callBack);
 

@@ -52,8 +52,8 @@ namespace Reclo_Recovery_Manager
                 Console.WriteLine("Success");
                 logErrorLB.Text = "";
                 DataManager.addUser(DataManager.cleanJSON(json["username"].ToString()), DataManager.cleanJSON(json["token"].ToString()), DataManager.cleanJSON(json["user_id"].ToString()));
-                RecloApiCaller.getBackupList(DataManager.getUserID(), DataManager.getToken(), (string res1) => getBackups_callback(res));
-
+                RecloApiCaller.getBackupList(DataManager.getUserID(), DataManager.getToken(), (string res1) => getBackups_callback(res1));
+              
 
             }
             else
@@ -85,6 +85,24 @@ namespace Reclo_Recovery_Manager
             this.Hide();
             MyInstances f = new MyInstances();
             f.Show();
+        }
+
+        public void getInstances_callback(string res)
+        {
+            JsonValue json = JsonValue.Parse(res); //Creates JsonValue from response string
+            Console.WriteLine("My Json String = " + json.ToString()); //log that a response was recieved
+            DataManager.addInstancesList(json);
+            if (DataManager.cleanJSON(json["HttpStatus"].ToString()) == "200")
+            {
+                // Code to execute on success goes here
+                Console.WriteLine("Success");
+        
+            }
+            else
+            {
+                // Code to execute on error goes here
+                Console.WriteLine("error");
+            }
         }
     }
 }

@@ -58,7 +58,7 @@
             this.loginBTN.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.loginBTN.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.loginBTN.ForeColor = System.Drawing.Color.White;
-            this.loginBTN.Location = new System.Drawing.Point(12, 346);
+            this.loginBTN.Location = new System.Drawing.Point(12, 412);
             this.loginBTN.Name = "loginBTN";
             this.loginBTN.Size = new System.Drawing.Size(312, 53);
             this.loginBTN.TabIndex = 6;
@@ -131,6 +131,7 @@
             this.MaximumSize = new System.Drawing.Size(354, 524);
             this.MinimumSize = new System.Drawing.Size(354, 524);
             this.Name = "loginForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "ReClo ";
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);

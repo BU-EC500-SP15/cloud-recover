@@ -28,13 +28,20 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             this.backupListMsg = new System.Windows.Forms.Label();
-            this.listView1 = new System.Windows.Forms.ListView();
             this.button4 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
+            this.dataGridView1 = new System.Windows.Forms.DataGridView();
+            this.UId = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Count = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Name = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.BackupSize = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.DateCreated = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
             // backupListMsg
@@ -49,15 +56,6 @@
             this.backupListMsg.TabIndex = 23;
             this.backupListMsg.Text = "No Backups...";
             this.backupListMsg.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // listView1
-            // 
-            this.listView1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.listView1.Location = new System.Drawing.Point(12, 59);
-            this.listView1.Name = "listView1";
-            this.listView1.Size = new System.Drawing.Size(408, 277);
-            this.listView1.TabIndex = 22;
-            this.listView1.UseCompatibleStateImageBehavior = false;
             // 
             // button4
             // 
@@ -117,22 +115,77 @@
             this.label2.Size = new System.Drawing.Size(433, 35);
             this.label2.TabIndex = 20;
             // 
+            // dataGridView1
+            // 
+            this.dataGridView1.AllowUserToAddRows = false;
+            this.dataGridView1.AllowUserToDeleteRows = false;
+            dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(103)))), ((int)(((byte)(128)))), ((int)(((byte)(159)))));
+            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.UId,
+            this.Count,
+            this.Name,
+            this.BackupSize,
+            this.DateCreated});
+            this.dataGridView1.Location = new System.Drawing.Point(12, 58);
+            this.dataGridView1.Name = "dataGridView1";
+            this.dataGridView1.ReadOnly = true;
+            this.dataGridView1.RowTemplate.Height = 24;
+            this.dataGridView1.Size = new System.Drawing.Size(408, 277);
+            this.dataGridView1.TabIndex = 24;
+            // 
+            // UId
+            // 
+            this.UId.HeaderText = "id";
+            this.UId.Name = "UId";
+            this.UId.ReadOnly = true;
+            this.UId.Visible = false;
+            // 
+            // Count
+            // 
+            this.Count.HeaderText = "Id";
+            this.Count.Name = "Count";
+            this.Count.ReadOnly = true;
+            this.Count.Width = 91;
+            // 
+            // Name
+            // 
+            this.Name.HeaderText = "Name";
+            this.Name.Name = "Name";
+            this.Name.ReadOnly = true;
+            this.Name.Width = 92;
+            // 
+            // BackupSize
+            // 
+            this.BackupSize.HeaderText = "Backup Size";
+            this.BackupSize.Name = "BackupSize";
+            this.BackupSize.ReadOnly = true;
+            this.BackupSize.Width = 91;
+            // 
+            // DateCreated
+            // 
+            this.DateCreated.HeaderText = "Date Created";
+            this.DateCreated.Name = "DateCreated";
+            this.DateCreated.ReadOnly = true;
+            this.DateCreated.Width = 91;
+            // 
             // Backups
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(432, 403);
             this.Controls.Add(this.backupListMsg);
-            this.Controls.Add(this.listView1);
             this.Controls.Add(this.button4);
             this.Controls.Add(this.button3);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.label2);
+            this.Controls.Add(this.dataGridView1);
             this.MaximumSize = new System.Drawing.Size(450, 450);
             this.MinimumSize = new System.Drawing.Size(450, 450);
-            this.Name = "Backups";
             this.Text = "Backups";
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -140,11 +193,16 @@
         #endregion
 
         private System.Windows.Forms.Label backupListMsg;
-        private System.Windows.Forms.ListView listView1;
         private System.Windows.Forms.Button button4;
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.DataGridView dataGridView1;
+        private System.Windows.Forms.DataGridViewTextBoxColumn UId;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Count;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Name;
+        private System.Windows.Forms.DataGridViewTextBoxColumn BackupSize;
+        private System.Windows.Forms.DataGridViewTextBoxColumn DateCreated;
     }
 }

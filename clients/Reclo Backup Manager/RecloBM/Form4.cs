@@ -62,7 +62,6 @@ namespace RecloBM
                            backupListMsg.Hide();
                            JsonValue jarrayer = backupList["backups"];
                            string array = backupList["backups"].ToString();
-                           // Console.WriteLine("The json val is" + array[0]["backup_id"]);
                            JArray items = JArray.Parse(array);
                            int length = items.Count;
                            for (int i = 0; i < length; i++)
@@ -72,13 +71,12 @@ namespace RecloBM
                        }
                        catch (KeyNotFoundException)
                        {
-
                        }
                    }
                    catch (InvalidOperationException)
                    {
                        backupListMsg.Text = "No Backups...";
-                     }
+                   }
                }
                catch(NullReferenceException )
                {
