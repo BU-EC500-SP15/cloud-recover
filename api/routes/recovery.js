@@ -67,7 +67,7 @@ router.post('/:user_id/:backup_id', function(req,res) {
             instance_id     :   'tbd',
             file_name       :   'tbd', // file name of most recent full backup, tbd
             total_progress  :   0,
-            instance_state  :   'pending',
+            instance_state  :   'importing',
             recovery_state  :   'pending',
             state_progress  :   0,
             no_downloads    :   0,

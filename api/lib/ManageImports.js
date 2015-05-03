@@ -343,10 +343,10 @@ function handleConverted(recovery_id,instance_id) {
                 console.log('Starting instance ' + instance_id);
                 
                 // update database
-                var qry = "UPDATE reclodb.recovery SET recovery_state = ? " +
+                var qry = "UPDATE reclodb.recovery SET recovery_state = ?, instance_state = ? " +
                           "WHERE recovery_id = ?";
                           
-                var params = ['finishing',recovery_id];
+                var params = ['finishing','pending',recovery_id];
                 
                 function updateRecoveryStateCallback(err,results) {
                     
@@ -363,7 +363,13 @@ function handleConverted(recovery_id,instance_id) {
                     
                 } // updateRecoveryStateCallback
                 db.query(qry,params,updateRecoveryStateCallback);
+                
             } // if
+            else { 
+                
+                console.log('Instance ' + instance_id + ' is already running.');
+                db.disconnect();
+            }
             
         } // startInstanceCallback 
         ec2.startInstances(params,startInstanceCallback);
