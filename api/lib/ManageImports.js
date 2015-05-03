@@ -95,7 +95,7 @@ function connectionCallback(err) {
                     break;               
                                 
                 case 'converted':
-                    handleConverted(recovery_id,instance_id);
+                    handleConverted(recovery_id,user_id,instance_id);
                     break;               
                                              
             } // switch
@@ -306,7 +306,7 @@ function handleConverting(recovery_id,conversion_id) {
  * HANDLE CONVERTED RECOVERY TASKS
  * -------------------------------------------------------------------------------------------------
  */
-function handleConverted(recovery_id,instance_id) {
+function handleConverted(recovery_id,user_id,instance_id) {
 
     console.log('Handling CONVERTED recovery task ' + recovery_id);
 
@@ -344,9 +344,20 @@ function handleConverted(recovery_id,instance_id) {
                 
                 // update database
                 var qry = "UPDATE reclodb.recovery SET recovery_state = ?, instance_state = ? " +
-                          "WHERE recovery_id = ?";
+                          "WHERE recovery_id = ?; " +
+                          "INSERT INTO reclodb.instances SET instance_id = ?, user_id = ?, " +
+                          "date_created = NOW(), ip_address = '0.0.0.0', availability_zone = ?, " + 
+                          "instance_name = 'client-1', instance_state = ?, instance_status = 'A'";
                           
-                var params = ['finishing','pending',recovery_id];
+                var params = [
+                    'finishing', // query 1
+                    'running',
+                    recovery_id,
+                    instance_id, // query 2
+                    user_id,
+                    'us-west-2',
+                    'running'
+                ];
                 
                 function updateRecoveryStateCallback(err,results) {
                     
