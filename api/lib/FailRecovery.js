@@ -10,7 +10,7 @@
  *
  */
  
-var DBConnection = require('../lib/LOCALDBConnection.js');
+var DBConnection = require('../lib/DBConnection.js');
 var corelib = require('../lib/core.js');
 
 var AWS = require('aws-sdk');
