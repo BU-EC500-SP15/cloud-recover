@@ -12,6 +12,8 @@ public class RecloApiCaller
     private static string logoutUrl = "logout";
     private static string backupsURL = "backups/";
     private static string uploadsURL = "uploads/";
+    private static string recoveryURL = "recovery/";
+    private static string instancesURL = "instances/";
 
     /*
      * NOTE : all callback functons need to take as a parameter :
@@ -75,16 +77,24 @@ public class RecloApiCaller
         HttpMethods.httpGET(newURL,callBack);
     }
 
+
     public static void getBackupList(string userID,string token, Action<string> callBack)
     {
         string newURL = backupsURL+userID+"?token="+token;
         HttpMethods.httpGET(newURL,callBack);
     }
 
-
-     public static void authorizeUpload(string userID,string token,string fileName, string fileSize, Action<string> callBack)
+    public static void getInstances(string userID, string token, Action<string> callBack)
     {
-            string newURL = backupsURL+uploadsURL+userID+"?token="+token;
+        string newURL = recoveryURL + userID + "?token=" + token;
+        HttpMethods.httpGET(newURL, callBack);
+    }
+
+
+
+     public static void startRecovery(string userID,string token,string fileName, string fileSize, Action<string> callBack)
+    {
+            string newURL = backupsURL+userID+"?token="+token;
                IEnumerable<KeyValuePair<string, string>> nameValueCollection = new[] 
             {
                 new KeyValuePair<string, string>("file_name", fileName),
@@ -95,19 +105,16 @@ public class RecloApiCaller
 
     }
 
+     public static void getProgress(string recoveryID, string token, Action<string> callBack)
+     {
+         string newURL = recoveryURL + recoveryID + "?token=" + token;
+         HttpMethods.httpGET(newURL, callBack);
+     }
 
-     public static void completeUpload( string userID, string token, string uploadStatus, string uploadID, Action<string> callBack)
-    {
-        //  .../backups/uploads/:user_id/:upload_id?token=
-        string newURL = backupsURL+uploadsURL+userID+"/"+uploadID+"?token="+token;
-
-        IEnumerable<KeyValuePair<string, string>> nameValueCollection = new[] 
-            {
-                new KeyValuePair<string, string>("upload_status", uploadStatus)
-            };
-
-            HttpMethods.httpPUT(nameValueCollection, newURL, callBack);
-    }
-
+     public static void stopInstance(string instanceID, string token, Action<string> callBack)
+     {
+         string newURL = recoveryURL + instancesURL +instanceID + "?token=" + token;
+         HttpMethods.httpDELETE(newURL, callBack);
+     }
 
 }
