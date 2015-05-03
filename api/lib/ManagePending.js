@@ -7,6 +7,20 @@
  * Run Frequency: every minute
  *
  * Checks for pending recovery tasks and starts the download process.
+ *
+ * Possible recovery states and (progress) are:
+ * -------------------------------------------------------------------------------------------------
+ * PENDING      - ( 0%) waiting to start backup downloads
+ * DOWNLOADING  - ( - ) downloading full and incremental backups to temporary storage for import
+ * DOWNLOADED   - (35%) ready to merge downloaded backups into one VHD
+ * IMPORTING    - ( - ) importing backup into EC2, see progress using ec2-describe-conversion-tasks
+ * IMPORTED     - (55%) #deprecated# sucessfully imported into EC2, ready to start conversion
+ * CONVERTING   - ( - ) in-progress conversion from VHD to EC2 AMI instance (started automatically)
+ * CONVERTED    - (90%) conversion task finished (attempting to start instance)
+ * FINISHING    - ( - ) starting new instance
+ * FINISHED     - (100) new instance started, recovery process complete
+ * FAILED       - ( - ) recovery failed at some point during the download/import/conversion process
+ * -------------------------------------------------------------------------------------------------
  */
 
 var DBConnection = require('../lib/DBConnection.js');
