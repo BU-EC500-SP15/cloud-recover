@@ -1,4 +1,4 @@
-/* ReClo API: /lib/ManageDownloads.js
+/* ReClo API: /lib/ManageImports.js
  * ---------------------------------
  * v1.0
  * Carlton Duffett
@@ -306,7 +306,7 @@ function handleConverting(recovery_id,conversion_id) {
  * HANDLE CONVERTED RECOVERY TASKS
  * -------------------------------------------------------------------------------------------------
  */
-function handleConverted(recovery_id,conversion_id,instance_id) {
+function handleConverted(recovery_id,instance_id) {
 
     console.log('Handling CONVERTED recovery task ' + recovery_id);
 
@@ -346,7 +346,7 @@ function handleConverted(recovery_id,conversion_id,instance_id) {
                 var qry = "UPDATE reclodb.recovery SET recovery_state = ? " +
                           "WHERE recovery_id = ?";
                           
-                var params = [recovery_id];
+                var params = ['finishing',recovery_id];
                 
                 function updateRecoveryStateCallback(err,results) {
                     
@@ -363,11 +363,11 @@ function handleConverted(recovery_id,conversion_id,instance_id) {
                     
                 } // updateRecoveryStateCallback
                 db.query(qry,params,updateRecoveryStateCallback);
-            }
+            } // if
             
         } // startInstanceCallback 
         ec2.startInstances(params,startInstanceCallback);
-        
+    }   
     var db = new DBConnection();
     db.connect(connectionCallback.bind(db));
 }
