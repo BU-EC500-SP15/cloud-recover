@@ -306,7 +306,7 @@ function handleConverting(recovery_id,conversion_id) {
  * HANDLE CONVERTED RECOVERY TASKS
  * -------------------------------------------------------------------------------------------------
  */
-function handleConverted(recovery_id,conversion_id) {
+function handleConverted(recovery_id,conversion_id,instance_id) {
 
     console.log('Handling CONVERTED recovery task ' + recovery_id);
 
@@ -320,24 +320,54 @@ function handleConverted(recovery_id,conversion_id) {
             return;
         }
         
-        // get a list of current recovery tasks in progress
-        var qry = 
+        // attempt to start new instance
+        var ec2 = new AWS.EC2();
 
-        function Callback(err,results) {
+        var params = {
+          InstanceIds: [
+            instance_id,
+          ]
+        };
         
+        function startInstanceCallback(err,data) {
+            
             if (err) {
-                console.log('Recovery management failed for task ' + recovery_id + 
-                            ', there was an error connecting to the database');
                 
+                console.log('Instance ' + instance_id + ' not ready');
                 db.disconnect();
                 return;
             }
             
-            // attempt to start instance
+            // instance started successfully, move to finishing state
+            if (data.StartingInstances[0].CurrentState.Code == 0) { // pending == 0
+                console.log('Starting instance ' + instance_id);
+                
+                // update database
+                var qry = "UPDATE reclodb.recovery SET recovery_state = ? " +
+                          "WHERE recovery_id = ?";
+                          
+                var params = [recovery_id];
+                
+                function updateRecoveryStateCallback(err,results) {
+                    
+                    if (err) {
+                        console.log('Recovery management failed for task ' + recovery_id + 
+                                    ', there was an error connecting to the database');
+                        
+                        db.disconnect();
+                        return;
+                    }                   
+                    
+                    console.log('Moved recovery ' + recovery_id + ' to FINISHING state');
+                    db.disconnect();
+                    
+                } // updateRecoveryStateCallback
+                db.query(qry,params,updateRecoveryStateCallback);
+            }
             
-        } // getRecoveryTasksCallback
-        db.query(qry,getRecoveryTasksCallback);
-    }
+        } // startInstanceCallback 
+        ec2.startInstances(params,startInstanceCallback);
+        
     var db = new DBConnection();
     db.connect(connectionCallback.bind(db));
 }
