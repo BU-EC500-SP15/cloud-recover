@@ -10,7 +10,7 @@ using System.Net.Http;
 
 public static class HttpMethods
 {
-    private static string urlHead = "http://52.11.1.237:3000/";
+    private static string urlHead = "http://52.24.77.177:3000/";
 
 
         public static void httpPOST(IEnumerable<KeyValuePair<string, string>> nameValueCollection, string url, Action<string> callBack)
