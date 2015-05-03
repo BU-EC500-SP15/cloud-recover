@@ -18,6 +18,7 @@ namespace RecloBM
         private static string tempSecretKey;
         private static string username;
         private static JsonValue backupsList = "{\"error\":302}";
+        private static JsonValue instancesList = "{\"error\":302}";
         private static string destination = "Select Location...";
         private static string source = "Select Drive...";
         private static bool scheduledBackups = false;
@@ -66,6 +67,16 @@ namespace RecloBM
         public static JsonValue getBackupslist()
         {
             return backupsList;
+        }
+
+        public static void addInstancesList(JsonValue instances)
+        {
+            instancesList = instances;
+        }
+
+        public static JsonValue getInstanceslist()
+        {
+            return instancesList;
         }
 
         public static void clearUser()
