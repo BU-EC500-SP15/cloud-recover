@@ -123,7 +123,7 @@ router.post('/:user_id/:backup_id', function(req,res) {
  * Gets the current progress of the recovery operation.
  */
  
- router.get('/:recovery_id', function(req,res){
+ router.get('progress/:recovery_id', function(req,res){
     
     var recovery_id = req.params.recovery_id;
     var token       = req.query.token;
@@ -203,7 +203,7 @@ router.post('/:user_id/:backup_id', function(req,res) {
  * Returns information on active instance(s) for a given user.
  */
 
-router.get('/:user_id', function(req,res) {
+router.get('instances/:user_id', function(req,res) {
 
     var user_id = req.params.user_id;
     var token   = req.query.token;
