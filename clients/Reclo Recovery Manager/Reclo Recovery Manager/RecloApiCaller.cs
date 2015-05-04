@@ -14,6 +14,7 @@ public class RecloApiCaller
     private static string uploadsURL = "uploads/";
     private static string recoveryURL = "recovery/";
     private static string instancesURL = "instances/";
+    private static string progressURL = "progress/";
 
     /*
      * NOTE : all callback functons need to take as a parameter :
@@ -95,7 +96,9 @@ public class RecloApiCaller
     public static void startRecovery(string userID, string token, string backup_id,  Action<string> callBack)
     {
             string newURL = recoveryURL+userID+"/"+backup_id+"?token="+token;
-            IEnumerable<KeyValuePair<string, string>> nameValueCollection = null;
+            IEnumerable<KeyValuePair<string, string>> nameValueCollection = new[] {
+                new KeyValuePair<string, string>("some", "0")
+            };
             
             HttpMethods.httpPOST(nameValueCollection, newURL, callBack);
 
@@ -103,7 +106,7 @@ public class RecloApiCaller
 
      public static void getProgress(string recoveryID, string token, Action<string> callBack)
      {
-         string newURL = recoveryURL + recoveryID + "?token=" + token;
+         string newURL = recoveryURL + progressURL+ recoveryID + "?token=" + token;
          HttpMethods.httpGET(newURL, callBack);
      }
 

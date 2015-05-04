@@ -10,8 +10,12 @@ namespace RecloBM
 {
     class DataManager
     {
-
-
+        private static string instanceId = "";
+        private static bool isRecoveryPending =false; 
+        private static string recoveryPercent = "0%";
+        private static string recoveryStatus = "0";
+        private static string recoveryID = "";
+        private static bool instanceUp = false;
         private static string userID;
         private static string token;
         private static string tempKey;
@@ -169,6 +173,64 @@ namespace RecloBM
         public static string getVHDName()
         {
             return vhdName;
+        }
+
+        public static void setInstanceUp(bool set)
+        {
+            instanceUp = set;
+        }
+        public static bool getInstanceUp()
+        {
+            return instanceUp;
+        }
+
+        public static void setRecoveryID(string set)
+        {
+            recoveryID = set;
+        }
+
+        public static string getRecoveryID()
+        {
+            return recoveryID;
+        }
+
+
+        public static void setRecoveryStatus(string set)
+        {
+            recoveryStatus = set;
+        }
+        public static string getRecoveryStatus()
+        {
+            return recoveryStatus;
+        }
+
+
+        public static void setRecoveryPercent(string set)
+        {
+            recoveryPercent = set+"%";
+        }
+        public static string getRecoveryPercent()
+        {
+            return recoveryPercent;
+        }
+
+        public static void setInstanceID(string set)
+        {
+            instanceId = set;
+        }
+        public static string getInstanceID()
+        {
+            return instanceId;
+        }
+
+        public static void setIsRecoveryPending(bool input)
+        {
+            isRecoveryPending = input;
+        }
+
+        public static bool getIsRecoveryPending()
+        {
+            return isRecoveryPending;
         }
     }
   

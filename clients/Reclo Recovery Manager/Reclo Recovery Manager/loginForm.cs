@@ -53,8 +53,6 @@ namespace Reclo_Recovery_Manager
                 logErrorLB.Text = "";
                 DataManager.addUser(DataManager.cleanJSON(json["username"].ToString()), DataManager.cleanJSON(json["token"].ToString()), DataManager.cleanJSON(json["user_id"].ToString()));
                 RecloApiCaller.getBackupList(DataManager.getUserID(), DataManager.getToken(), (string res1) => getBackups_callback(res1));
-              
-
             }
             else
             {
@@ -96,7 +94,7 @@ namespace Reclo_Recovery_Manager
             {
                 // Code to execute on success goes here
                 Console.WriteLine("Success");
-        
+                DataManager.setInstanceUp(true);
             }
             else
             {

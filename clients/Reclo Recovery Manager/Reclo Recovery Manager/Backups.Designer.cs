@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             this.backupListMsg = new System.Windows.Forms.Label();
             this.button4 = new System.Windows.Forms.Button();
@@ -41,7 +42,11 @@
             this.Name = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.BackupSize = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.DateCreated = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.button5 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
+            this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // backupListMsg
@@ -50,7 +55,7 @@
             this.backupListMsg.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.backupListMsg.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.backupListMsg.ImageAlign = System.Drawing.ContentAlignment.BottomCenter;
-            this.backupListMsg.Location = new System.Drawing.Point(138, 149);
+            this.backupListMsg.Location = new System.Drawing.Point(140, 184);
             this.backupListMsg.Name = "backupListMsg";
             this.backupListMsg.Size = new System.Drawing.Size(153, 40);
             this.backupListMsg.TabIndex = 23;
@@ -128,11 +133,13 @@
             this.Name,
             this.BackupSize,
             this.DateCreated});
-            this.dataGridView1.Location = new System.Drawing.Point(12, 58);
+            this.dataGridView1.Location = new System.Drawing.Point(12, 89);
+            this.dataGridView1.MultiSelect = false;
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.ReadOnly = true;
             this.dataGridView1.RowTemplate.Height = 24;
-            this.dataGridView1.Size = new System.Drawing.Size(408, 277);
+            this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dataGridView1.Size = new System.Drawing.Size(408, 246);
             this.dataGridView1.TabIndex = 24;
             // 
             // UId
@@ -170,11 +177,40 @@
             this.DateCreated.ReadOnly = true;
             this.DateCreated.Width = 91;
             // 
+            // contextMenuStrip1
+            // 
+            this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripMenuItem1});
+            this.contextMenuStrip1.Name = "contextMenuStrip1";
+            this.contextMenuStrip1.Size = new System.Drawing.Size(240, 28);
+            // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(239, 24);
+            this.toolStripMenuItem1.Text = "Start Backup As Instance";
+            // 
+            // button5
+            // 
+            this.button5.BackColor = System.Drawing.Color.SeaGreen;
+            this.button5.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button5.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button5.ForeColor = System.Drawing.Color.White;
+            this.button5.Location = new System.Drawing.Point(12, 52);
+            this.button5.Name = "button5";
+            this.button5.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.button5.Size = new System.Drawing.Size(408, 31);
+            this.button5.TabIndex = 25;
+            this.button5.Text = "Start Selected As Instance";
+            this.button5.UseVisualStyleBackColor = false;
+            this.button5.Click += new System.EventHandler(this.button5_Click);
+            // 
             // Backups
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(432, 403);
+            this.Controls.Add(this.button5);
             this.Controls.Add(this.backupListMsg);
             this.Controls.Add(this.button4);
             this.Controls.Add(this.button3);
@@ -186,6 +222,7 @@
             this.MinimumSize = new System.Drawing.Size(450, 450);
             this.Text = "Backups";
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
+            this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -204,5 +241,8 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn Name;
         private System.Windows.Forms.DataGridViewTextBoxColumn BackupSize;
         private System.Windows.Forms.DataGridViewTextBoxColumn DateCreated;
+        private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
+        private System.Windows.Forms.Button button5;
     }
 }

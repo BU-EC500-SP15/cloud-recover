@@ -21,7 +21,6 @@ E:\Dropbox\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\o
 E:\Dropbox\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo_Recovery_Manager.loginForm.resources
 E:\Dropbox\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo_Recovery_Manager.MyInstances.resources
 E:\Dropbox\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo_Recovery_Manager.Properties.Resources.resources
-E:\Dropbox\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo_Recovery_Manager.Settings.resources
 E:\Dropbox\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo Recovery Manager.csproj.GenerateResource.Cache
 E:\Dropbox\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\bin\Debug\Newtonsoft.Json.dll
 E:\Dropbox\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\bin\Debug\Newtonsoft.Json.xml

@@ -9,14 +9,17 @@ using System.Json;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows.Forms;
 
 namespace Reclo_Recovery_Manager
 {
     public partial class MyInstances : Form
     {
+        public static System.Timers.Timer bTimer;
         public MyInstances()
         {
+            bTimer = new System.Timers.Timer();
             InitializeComponent();
             Rectangle workingArea = Screen.GetWorkingArea(this);
             this.Location = new Point(workingArea.Right - Size.Width,
@@ -24,13 +27,24 @@ namespace Reclo_Recovery_Manager
             RecloApiCaller.getInstances(DataManager.getUserID(), DataManager.getToken(), (string res) => getInstances_callback(res));
             clearView();
             updateDataView();
+            updateView();
+
+            if (!DataManager.getInstanceUp() && (DataManager.getRecoveryStatus() != "finished" || DataManager.getRecoveryStatus() != "failed") && !bTimer.Enabled)
+            {
+               
+                bTimer.Elapsed += new ElapsedEventHandler(OnTimedEvent);
+                bTimer.Interval = 30000;
+                bTimer.Start();
+            }
+            
         }
 
         private void button4_Click(object sender, EventArgs e)
         {
-            //Refresh
-            RecloApiCaller.getInstances(DataManager.getUserID(), DataManager.getToken(), (string res) => getInstances_callback(res));
-
+            //Open Backups page
+            this.Hide();
+            Backups f = new Backups();
+            f.Show();
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -50,7 +64,7 @@ namespace Reclo_Recovery_Manager
             f.Show();
             */
 
-            if (MessageBox.Show("Are You sure you want to logout?", "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
+            if (MessageBox.Show("Are you sure you want to logout?", "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
             {
             }
             else
@@ -128,6 +142,7 @@ namespace Reclo_Recovery_Manager
             {
                 //backupListMsg.Text = "No Backups...";
             }
+            DataManager.setInstanceUp(true);
         }
 
         public void getInstances_callback(string res)
@@ -177,25 +192,113 @@ namespace Reclo_Recovery_Manager
             label3.Hide();
             label4.Hide();
             label1.Hide();
-           
         }
 
         public void showView()
         {
-            uidLBL.Hide();
-            stateLBL.Hide();
-            nameLBL.Hide();
-            ipLBL.Hide();
-            zoneLBL.Hide();
-            dateLBL.Hide();
-            label5.Hide();
-            label6.Hide();
-            label7.Hide();
-            label3.Hide();
-            label4.Hide();
-            label1.Hide();
+            uidLBL.Show();
+            stateLBL.Show();
+            nameLBL.Show();
+            ipLBL.Show();
+            zoneLBL.Show();
+            dateLBL.Show();
+            label5.Show();
+            label6.Show();
+            label7.Show();
+            label3.Show();
+            label4.Show();
+            label1.Show();
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
 
         }
         
+        public void updateView()
+        {
+            if(DataManager.getInstanceUp())
+            {
+                showView();
+                button4.Hide();
+                connectBTN.Show();
+                disBTN.Show();
+                stopBTN.Show();
+                spinMSG.Text = "Instance is running succesfully.";
+                if (bTimer.Enabled)
+                {
+                    bTimer.Stop();
+                }
+            }
+            else
+            {
+                hideView();
+                button4.Show();
+                connectBTN.Hide();
+                disBTN.Hide();
+                stopBTN.Hide();
+                       
+                    if (DataManager.getRecoveryStatus() == "finished")
+                    {
+                        spinMSG.Text = "Select a backup to spin up.";
+                        if (bTimer.Enabled)
+                        {
+                            bTimer.Stop();
+                        }
+                    }
+                    else if (DataManager.getRecoveryStatus() == "failed")
+                    {
+                        spinMSG.Text = "Instance has failed spining up... please try again.";
+                        if (bTimer.Enabled)
+                        {
+                            bTimer.Stop();
+                        }
+                    }
+                    else
+                    {
+                                spinMSG.Text = "Instance is currently " +
+                             DataManager.getRecoveryStatus() +
+                             " at " +
+                             DataManager.getRecoveryPercent();
+                    }
+                
+
+            }
+
+        }
+
+
+        //Timer for check the status
+        private void OnTimedEvent(object source, ElapsedEventArgs e)
+        {
+            //do something with the timer
+            updateView();
+        }
+
+        private void stopBTN_Click(object sender, EventArgs e)
+        {
+              RecloApiCaller.stopInstance(DataManager.getInstanceID() ,DataManager.getToken(), (string res) => stopI_callback(res));
+        }
+
+        public void stopI_callback(string res)
+        {
+            JsonValue json = JsonValue.Parse(res); //Creates JsonValue from response string
+            Console.WriteLine("My Json String = " + json.ToString()); //log that a response was recieved
+
+            if (DataManager.cleanJSON(json["HttpStatus"].ToString()) == "200")
+            {
+                // Code to execute on success goes here
+                Console.WriteLine("Success");
+                DataManager.setInstanceUp(false);
+
+            }
+            else
+            {
+                // Code to execute on error goes here
+                Console.WriteLine(json["message"]);
+                
+            }
+        
+        }
     }
 }
