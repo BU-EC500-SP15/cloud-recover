@@ -15,6 +15,7 @@ public static class HttpMethods
 
         public static void httpPOST(IEnumerable<KeyValuePair<string, string>> nameValueCollection, string url, Action<string> callBack)
         {   
+            try{
                 Console.Write("Sending Http POST to "+urlHead+url+"...\n");
                 using(var client = new HttpClient())
                 {
@@ -37,12 +38,19 @@ public static class HttpMethods
                         }
                     
                 }
+                }
+            catch (System.AggregateException)
+            {
+
+            }
+
         }
 
 
 
         public static void httpGET(string url, Action<string> callBack)
         {   
+            try{
                 Console.Write("Sending Http GET to "+urlHead+url+"...\n");
                 using(var client = new HttpClient())
                 {
@@ -64,11 +72,17 @@ public static class HttpMethods
                         }
                    
                 }
+                }
+            catch (System.AggregateException)
+            {
+
+            }
         }
 
 
          public static void httpPUT(IEnumerable<KeyValuePair<string, string>> nameValueCollection, string url, Action<string> callBack)
         {   
+             try{
                 Console.Write("Sending Http PUT to "+urlHead+url+"...\n");
                 using(var client = new HttpClient())
                 {
@@ -90,11 +104,17 @@ public static class HttpMethods
                             callBack(addStatusToJson(resultContent,"500"));
                         }
                 }
+                 }
+            catch (System.AggregateException)
+            {
+
+            }
         }
 
 
         public static void httpDELETE(string url, Action<string> callBack)
-        {   
+        {
+            try { 
                 Console.Write("Sending Http DELETE to "+urlHead+url+"...\n");
                 using(var client = new HttpClient())
                 {
@@ -115,6 +135,11 @@ public static class HttpMethods
                             callBack(addStatusToJson(resultContent,"500"));
                         }
                 }
+            }
+            catch (System.AggregateException)
+            {
+
+            }
         }
 
         private static string addStatusToJson(string jsonin, string status)

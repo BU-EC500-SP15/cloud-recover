@@ -166,12 +166,13 @@ namespace Reclo_Recovery_Manager
                 }
                 else
                 {
-                    MessageBox.Show("Please select An Instance.");
+
+                    MessageBox.Show("Please select An Instance.", "Reclo Recover Manager");
                 }
             }
             else
             {
-                MessageBox.Show("Please spin down current instance inorder to run a new one.");
+                MessageBox.Show("Please spin down current instance inorder to run a new one.", "Reclo Recover Manager");
             }
         }
 
@@ -191,6 +192,10 @@ namespace Reclo_Recovery_Manager
                 // Set the Interval to 1 minute. 1000 = 1 second.
                 aTimer.Interval = 30000;
                 aTimer.Start();
+                // open instances
+                this.Hide();
+                MyInstances f = new MyInstances();
+                f.Show();
             }
             else
             {
@@ -217,6 +222,15 @@ namespace Reclo_Recovery_Manager
                 DataManager.setInstanceUp(false);
                 try
                 {
+                    if(DataManager.cleanJSON(json["current_state"].ToString()) == DataManager.getRecoveryStatus())
+                    {
+
+                    }
+                    else
+                    {
+                        // new status
+                        MessageBox.Show("Your backups status is now " + DataManager.cleanJSON(json["current_state"].ToString()) + ". Click refresh on the instances page for more details.", "Reclo Recover Manager Update");
+                    }
                     DataManager.setRecoveryStatus(DataManager.cleanJSON(json["current_state"].ToString()));
                     DataManager.setRecoveryPercent(DataManager.cleanJSON(json["state_progress"].ToString()));
                     if (DataManager.cleanJSON(json["current_state"].ToString()) == "finished")

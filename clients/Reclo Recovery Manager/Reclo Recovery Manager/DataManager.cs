@@ -31,6 +31,10 @@ namespace RecloBM
         private static string vhdName = "test.vhd";
         public static string cleanJSON(string input)
         {
+            if(input.Length <2)
+            {
+                return input;
+            }
             input = input.Remove(0, 1);
             input = input.Remove(input.Length - 1, 1);
             return input;
