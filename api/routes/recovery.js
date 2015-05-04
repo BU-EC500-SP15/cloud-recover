@@ -5,6 +5,9 @@
  * 4-19-2015
  */
 
+var test = 1;           // Change to 1 to set to dummy responses for testing purposes
+var testCount = 0;      // Leave at 0, this only matters in testing code 
+
 var express = require('express');
 var DBConnection = require('../lib/DBConnection.js');
 var corelib = require('../lib/core.js');
@@ -32,77 +35,88 @@ AWS.config.region = 'us-west-2';
  
 router.post('/:user_id/:backup_id', function(req,res) {
    
-    var user_id     = req.params.user_id;
-    var backup_id   = req.params.backup_id;
-    var token       = req.query.token;
-    
-    function validationCallback(err) {
-        
-        if (err) {
-            console.log('Invalid token.');
-            res.status(500).json({error: 102, message: 'Invalid token.'});
-            db.disconnect();
-            return;
-        }      
-          
-    function connectionCallback(err) {
-        
-         if (err) {
-            console.log('There was an error connecting to the database: ' + err);
-            res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
-            db.disconnect();
-            return;
-        }
-                 
-        // create new entry in recovery table  
-        var recovery_id = corelib.createToken();  
-            
-        var qry = "INSERT INTO reclodb.recovery SET date_started = NOW(), ?";
-        
-        var params = {
-            recovery_id     :   recovery_id,
-            user_id         :   user_id,
-            backup_id       :   backup_id,
-            conversion_id   :   'tbd',
-            instance_id     :   'tbd',
-            file_name       :   'tbd', // file name of most recent full backup, tbd
-            total_progress  :   0,
-            instance_state  :   'importing',
-            recovery_state  :   'pending',
-            state_progress  :   0,
-            no_downloads    :   0,
-            no_completed    :   0,
-            recovery_status :   'A'
-        }
-        
-    function createRecoveryCallback(err,results) {
-        
-        if (err) {
-            console.log('createRecovery ' + err);
-            res.status(500).json({error: 408, message: 'Failed to create recovery task'}); // MySQL error
-            db.disconnect();
-            return;
-        }
-        
-        res.status(200).json({message: 'Recovery process started',
-                                recovery_id: recovery_id,
-                                total_progress: 0,
-                                current_state: 'pending',
-                                state_progress: 0
-                                });
-        db.disconnect();
-   
-    } // createRecoveryCallback
-    db.query(qry,params,createRecoveryCallback);
-                    
-    } // connectionCallback
+    if(test == 0)
+    {
+        var user_id     = req.params.user_id;
+        var backup_id   = req.params.backup_id;
+        var token       = req.query.token;
 
-    // Open MySQL database connection
-    var db = new DBConnection();
-    db.connect(connectionCallback.bind(db));
+        function validationCallback(err) {
 
-    } // validationCallback
-    corelib.validateToken(token,validationCallback);
+            if (err) {
+                console.log('Invalid token.');
+                res.status(500).json({error: 102, message: 'Invalid token.'});
+                db.disconnect();
+                return;
+            }      
+
+        function connectionCallback(err) {
+
+             if (err) {
+                console.log('There was an error connecting to the database: ' + err);
+                res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
+                db.disconnect();
+                return;
+            }
+
+            // create new entry in recovery table  
+            var recovery_id = corelib.createToken();  
+
+            var qry = "INSERT INTO reclodb.recovery SET date_started = NOW(), ?";
+
+            var params = {
+                recovery_id     :   recovery_id,
+                user_id         :   user_id,
+                backup_id       :   backup_id,
+                conversion_id   :   'tbd',
+                instance_id     :   'tbd',
+                file_name       :   'tbd', // file name of most recent full backup, tbd
+                total_progress  :   0,
+                instance_state  :   'importing',
+                recovery_state  :   'pending',
+                state_progress  :   0,
+                no_downloads    :   0,
+                no_completed    :   0,
+                recovery_status :   'A'
+            }
+
+        function createRecoveryCallback(err,results) {
+
+            if (err) {
+                console.log('createRecovery ' + err);
+                res.status(500).json({error: 408, message: 'Failed to create recovery task'}); // MySQL error
+                db.disconnect();
+                return;
+            }
+
+            res.status(200).json({message: 'Recovery process started',
+                                    recovery_id: recovery_id,
+                                    total_progress: 0,
+                                    current_state: 'pending',
+                                    state_progress: 0
+                                    });
+            db.disconnect();
+
+        } // createRecoveryCallback
+        db.query(qry,params,createRecoveryCallback);
+
+        } // connectionCallback
+
+        // Open MySQL database connection
+        var db = new DBConnection();
+        db.connect(connectionCallback.bind(db));
+
+        } // validationCallback
+        corelib.validateToken(token,validationCallback);
+    }
+    else{
+          res.status(200).json({message: 'Recovery process started',
+                                    recovery_id: 1234567,
+                                    total_progress: 0,
+                                    current_state: 'pending',
+                                    state_progress: 0
+                                    });
+    }
     
  });
 
@@ -124,66 +138,154 @@ router.post('/:user_id/:backup_id', function(req,res) {
  */
  
  router.get('/progress/:recovery_id', function(req,res){
-    
-    var recovery_id = req.params.recovery_id;
-    var token       = req.query.token;
-    
-    function validationCallback(err) {
+    if(test == 0)
+    {
+            var recovery_id = req.params.recovery_id;
+            var token       = req.query.token;
 
-        if (err) {
-            console.log('Invalid token.');
-            res.status(500).json({error: 102, message: 'Invalid token.'});
-            db.disconnect();
-            return;
-        }
+            function validationCallback(err) {
 
-    // what DBConnection should do after connection is established
-    function connectionCallback(err) {
+                if (err) {
+                    console.log('Invalid token.');
+                    res.status(500).json({error: 102, message: 'Invalid token.'});
+                    db.disconnect();
+                    return;
+                }
 
-        if (err) {
-            console.log('There was an error connecting to the database: ' + err);
-            res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
-            db.disconnect();
-            return;
-        }
-        
-        // get current recovery progress
-        var qry = "SELECT total_progress, recovery_state, state_progress FROM " + 
-                  "reclodb.recovery WHERE recovery_id = ?";
-        
-        var params = [recovery_id];
+            // what DBConnection should do after connection is established
+            function connectionCallback(err) {
 
-        function getProgressCallback(err,results) {
+                if (err) {
+                    console.log('There was an error connecting to the database: ' + err);
+                    res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
+                    db.disconnect();
+                    return;
+                }
+
+                // get current recovery progress
+                var qry = "SELECT total_progress, recovery_state, state_progress FROM " + 
+                          "reclodb.recovery WHERE recovery_id = ?";
+
+                var params = [recovery_id];
+
+                function getProgressCallback(err,results) {
+
+                    if (err) {
+                        console.log('getProgress ' + err);
+                        res.status(500).json({error: 409, message: 'Failed to get recovery progress'}); // MySQL error
+                        db.disconnect();
+                        return;
+                    }
+                    var total_progress = results[0].total_progress;
+                    var current_state = results[0].recovery_state;
+                    var state_progress = results[0].state_progress;     
+
+                    res.status(200).json({message: 'Recovery in-progress',
+                                            total_progress: total_progress,
+                                            current_state: current_state,
+                                            state_progress: state_progress
+                                            });
+                    db.disconnect();
+
+                } // getProgressCallback
+                db.query(qry,params,getProgressCallback);
+
+            } // connectionCallback
+
+            // Open MySQL database connection
+            var db = new DBConnection();
+            db.connect(connectionCallback.bind(db));
+
+            } // validationCallback
+            corelib.validateToken(token,validationCallback);   
+    }
+    else{ // if testing is on send dummy value back
+         switch(testCount)
+         {
+                  case 0:
+                          res.status(200).json({message: 'Recovery in-progress',
+                                            total_progress: '10',
+                                            current_state: 'pending',
+                                            state_progress: '10'
+                                            });
+                        break;
+                 
+                  case 1:
+                         res.status(200).json({message: 'Recovery in-progress',
+                                            total_progress: '20',
+                                            current_state: 'downloading',
+                                            state_progress: '23'
+                                            });
+                        break;
+                    
+                  case 2:
+                       res.status(200).json({message: 'Recovery in-progress',
+                                            total_progress: '30',
+                                            current_state: 'downloaded',
+                                            state_progress: '48'
+                                            });
+                        break;
+                 
+                  case 3:
+                        res.status(200).json({message: 'Recovery in-progress',
+                                            total_progress: '40',
+                                            current_state: 'importing',
+                                            state_progress: '21'
+                                            });
+                 
+                        break;
+                  
+                 case 4:
+                        res.status(200).json({message: 'Recovery in-progress',
+                                            total_progress: '50',
+                                            current_state: 'converting',
+                                            state_progress: '61'
+                                            });
+                 
+                        break;
+                 
+                case 5:
+                        res.status(200).json({message: 'Recovery in-progress',
+                                            total_progress: '60',
+                                            current_state: 'converting',
+                                            state_progress: '52'
+                                            });
+                 
+                        break;
+                 
+                case 6:
+                        res.status(200).json({message: 'Recovery in-progress',
+                                            total_progress: '70',
+                                            current_state: 'converted',
+                                            state_progress: '92'
+                                            });
+                 
+                        break;
+                 
+                case 7:
+                        res.status(200).json({message: 'Recovery in-progress',
+                                            total_progress: '90',
+                                            current_state: 'finishing',
+                                            state_progress: '52'
+                                            });
+                 
+                        break;
             
-            if (err) {
-                console.log('getProgress ' + err);
-                res.status(500).json({error: 409, message: 'Failed to get recovery progress'}); // MySQL error
-                db.disconnect();
-                return;
-            }
-            var total_progress = results[0].total_progress;
-            var current_state = results[0].recovery_state;
-            var state_progress = results[0].state_progress;     
-            
-            res.status(200).json({message: 'Recovery in-progress',
-                                    total_progress: total_progress,
-                                    current_state: current_state,
-                                    state_progress: state_progress
-                                    });
-            db.disconnect();
-                                         
-        } // getProgressCallback
-        db.query(qry,params,getProgressCallback);
-
-    } // connectionCallback
-
-    // Open MySQL database connection
-    var db = new DBConnection();
-    db.connect(connectionCallback.bind(db));
-
-    } // validationCallback
-    corelib.validateToken(token,validationCallback);   
-    
+                case 8:
+                        res.status(200).json({message: 'Recovery in-progress',
+                                            total_progress: '100',
+                                            current_state: 'finished',
+                                            state_progress: '52'
+                                            });
+                 testCount =0;
+                        break;
+                 
+             default:
+                 testCount =0;
+                    break;
+                                       
+         }
+     }
  });
 
 
