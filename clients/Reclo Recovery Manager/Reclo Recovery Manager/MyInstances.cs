@@ -265,6 +265,8 @@ namespace Reclo_Recovery_Manager
                 Console.WriteLine("RECO STAT: " + DataManager.getRecoveryStatus());
                     if (DataManager.getRecoveryStatus() == "finished")
                     {
+                        pictureBox1.Image = Properties.Resources.backed1;
+
                         nextBTN.Text = "Start Recovery";
                         spinMSG.Text = "Select a backup to spin up.";
                         /*
@@ -276,6 +278,7 @@ namespace Reclo_Recovery_Manager
                     }
                     else if (DataManager.getRecoveryStatus() == "failed")
                     {
+                        pictureBox1.Image = Properties.Resources.backed1;
                         nextBTN.Text = "Start Recovery";
                         spinMSG.Text = "Instance has failed spining up... please try again.";
                         /*
@@ -287,6 +290,7 @@ namespace Reclo_Recovery_Manager
                     }
                     else
                     {
+                        pictureBox1.Image = Properties.Resources.backingup;
                         nextBTN.Text = "Refresh Status";
                                 spinMSG.Text = "Instance is currently " +
                              DataManager.getRecoveryStatus() +

@@ -93,6 +93,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
@@ -109,7 +110,13 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Resources\backed1.png" />
     <Content Include="Resources\backingup.png" />
+    <Content Include="Resources\favicon.ico" />
+    <Content Include="Resources\ms-icon-144x144.png" />
+    <Content Include="Resources\ms-icon-150x150.png" />
+    <Content Include="Resources\ms-icon-310x310.png" />
+    <Content Include="Resources\ms-icon-70x70.png" />
     <Content Include="Resources\reclologo.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
