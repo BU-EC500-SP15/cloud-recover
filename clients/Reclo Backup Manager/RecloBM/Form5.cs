@@ -122,7 +122,6 @@ namespace RecloBM
 
         private void button4_Click(object sender, EventArgs e)
         {
-
             //Save all data
             DataManager.setDestination(destTB.Text);
             DataManager.setSource(sourceTB.Text);

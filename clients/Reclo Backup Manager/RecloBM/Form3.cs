@@ -20,7 +20,6 @@ namespace RecloBM
             this.Location = new Point(workingArea.Right - Size.Width,
                                       workingArea.Bottom - Size.Height);
             label1.Text = "Hey, " + DataManager.getUsername() + " how are you? Scheduled Backups are off and your system has not been backed up. We suggest you click the \"Start Backup Now Button.\"";
-
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -51,20 +50,16 @@ namespace RecloBM
             if (DataManager.getSource() == "Select Drive..." || DataManager.getDestination() == "Select Location...")
             {
                 MessageBox.Show("Please Setup Your Source And Destination Folders In the Settings Tab.");
-
             }
             else{
                 statusLB.Text = "Creating VHD and Uploading it.";
                 pictureBox1.Image = Properties.Resources.backingup;
-                
-                /*
                  String[] source = { DataManager.getSource()}; //"d:\\BackupTarget"
                  String destination = DataManager.getDestination();
                 //StartBackup is the function you need
                 BackupTools Backup = new BackupTools();
                 InitTimer();
                 Backup.StartBackup(source, destination, 0);
-              */
                 RecloApiCaller.authorizeUpload(DataManager.getUserID(), DataManager.getToken(), "jb", "20", (string res) => upload_callback(res));
             }
           
@@ -74,13 +69,11 @@ namespace RecloBM
         {
             JsonValue json = JsonValue.Parse(res); //Creates JsonValue from response string
             Console.WriteLine("My Json String = " + json.ToString()); //log that a response was recieved
-
             if (DataManager.cleanJSON(json["HttpStatus"].ToString()) == "200")
             {
-
                 // Code to execute on success goes here
                 Console.WriteLine("Success");
-                S3Uploader.uploadFile(DataManager.getDestination() + "\\" +  DataManager.getVHDName(),
+                S3Uploader.uploadFile(DataManager.getDestination() +  DataManager.getVHDName(),
                     "reclo-client-backups/" + DataManager.getUserID(), 
                     DataManager.cleanJSON(json["credentials"]["AccessKeyId"].ToString()), 
                     DataManager.cleanJSON(json["credentials"]["SecretAccessKey"].ToString()),
@@ -93,7 +86,6 @@ namespace RecloBM
             {
                 // Code to execute on error goes here
                 Console.WriteLine(json["message"]);
-
             }
         }
 

@@ -1,5 +1,7 @@
 ﻿using Amazon.S3;
 using Amazon.S3.Transfer;
+using Amazon.S3.Util;
+using Amazon.S3.Internal;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,7 +26,12 @@ namespace RecloBM
             {
                 AmazonS3Client sclient = new AmazonS3Client(AccessKey, SecretKey, sessionToken, Amazon.RegionEndpoint.USWest2);
                 TransferUtility fileTransferUtility = new TransferUtility(sclient);
-           
+
+                /* Find way to increase time out timer because of large file size
+                TransferUtilityConfig config = new TransferUtilityConfig();
+                config.DefaultTimeout = 11111;
+                TransferUtility utility = new TransferUtility(config);
+                */
                 // 1. Upload a file, file name is used as the object key name.
                fileTransferUtility.Upload(filePath, existingBucketName);
                Console.WriteLine("Upload 1 completed");

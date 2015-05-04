@@ -23,7 +23,7 @@ namespace RecloBM
         public static String CobianPath = workingPath + "\\Cobian Backup 8\\";
         public String date;
         public String disk2vhdPath = workingPath + "\\Disk2vhd\\";
-       
+
 
         public void initialize(String lstName, String path, String taskName, String ID, String backupType, String Source, String Destination, String Schedule)
         {
@@ -224,10 +224,28 @@ namespace RecloBM
 
         public void deleteFolder(String destination)
         {
+            String[] outputFolder = new String[50];
             using (PowerShell PowerShellInstance = PowerShell.Create())
             {
-                PowerShellInstance.AddScript("Remove-Item " + destination + " -recurse");
-                PowerShellInstance.Invoke();
+                PowerShellInstance.AddScript("dir " + destination);
+                Collection<PSObject> PSOutput = PowerShellInstance.Invoke();
+                int i = 0;
+                foreach (PSObject outputItem in PSOutput)
+                {
+                    if (outputItem != null)
+                    {
+                        outputFolder[i] = outputItem.BaseObject.ToString();
+                        i += 1;
+                    }
+                }
+            }
+            foreach (String s in outputFolder)
+            {
+                using (PowerShell PowerShellInstance = PowerShell.Create())
+                {
+                    PowerShellInstance.AddScript("Remove-Item " + destination + s + " -recurse");
+                    PowerShellInstance.Invoke();
+                }
             }
         }
 
@@ -298,7 +316,7 @@ namespace RecloBM
             Assembly _assembly;
             Stream _lstStream;
             _assembly = Assembly.GetExecutingAssembly();
-            _lstStream = _assembly.GetManifestResourceStream("RunBackup.Resources.Cobian Backup 8.zip");
+            _lstStream = _assembly.GetManifestResourceStream("RecloBM.Resources.Cobian Backup 8.zip");
             using (var fileStream = File.Create(workingPath + "\\Cobian Backup 8.zip"))
             {
                 _lstStream.Seek(0, SeekOrigin.Begin);
@@ -307,7 +325,7 @@ namespace RecloBM
             string zipPath = workingPath + "\\Cobian Backup 8.zip";
             string extractPath = workingPath;
             ZipFile.ExtractToDirectory(zipPath, extractPath);
-            _lstStream = _assembly.GetManifestResourceStream("RunBackup.Resources.Disk2vhd.zip");
+            _lstStream = _assembly.GetManifestResourceStream("RecloBM.Resources.Disk2vhd.zip");
             using (var fileStream = File.Create(workingPath + "\\Disk2vhd.zip"))
             {
                 _lstStream.Seek(0, SeekOrigin.Begin);
@@ -364,22 +382,23 @@ namespace RecloBM
         public void StartBackup(String[] source, String destination, int backupType)
         {
             DataManager.setBackupStatus(1); // intializing backup
-            initializeSoftware();
+            //initializeSoftware();
             //MessageBox.Show("Initialized");
-            if(backupType == 1)
+            if (backupType == 1)
             {
                 DataManager.setBackupStatus(2); //Creating Incremental Backup
                 NewTask("IncrementalBackup", "2", "1", source, destination, "2");
             }
-            else{
+            else
+            {
                 DataManager.setBackupStatus(3); //creating full backup
                 NewTask("FullBackup", "1", "0", source, destination, "4");
             }
-          
-            
-           // MessageBox.Show("Task created");
+
+
+            // MessageBox.Show("Task created");
             StartTask(0);
-           // MessageBox.Show("Backup Compelete");
+            // MessageBox.Show("Backup Compelete");
             //StartTask(1);
         }
     }

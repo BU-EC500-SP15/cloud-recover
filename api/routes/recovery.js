@@ -7,7 +7,7 @@
 
 var test = 0;           // Change to 1 to set to dummy responses for testing purposes
 var testCount = 0;      // Leave at 0, this only matters in testing code 
-
+var fin =0;
 var express = require('express');
 var DBConnection = require('../lib/DBConnection.js');
 var corelib = require('../lib/core.js');
@@ -279,6 +279,7 @@ router.post('/:user_id/:backup_id', function(req,res) {
                                             state_progress: '52'
                                             });
                  testCount =0;
+                 fin++;
                         break;
                  
              default:
@@ -287,6 +288,7 @@ router.post('/:user_id/:backup_id', function(req,res) {
                                        
          }
          testCount++;
+        
         console.log("Current State Count is: " + testCount+ "\n");
      }
  });
@@ -310,55 +312,68 @@ router.post('/:user_id/:backup_id', function(req,res) {
 
 router.get('/instances/:user_id', function(req,res) {
 
-    var user_id = req.params.user_id;
-    var token   = req.query.token;
+    if(test == 0)
+    {
+            var user_id = req.params.user_id;
+            var token   = req.query.token;
 
-    function validationCallback(err) {
+            function validationCallback(err) {
 
-        if (err) {
-            console.log('Invalid token.');
-            res.status(500).json({error: 102, message: 'Invalid token.'});
-            db.disconnect();
-            return;
+                if (err) {
+                    console.log('Invalid token.');
+                    res.status(500).json({error: 102, message: 'Invalid token.'});
+                    db.disconnect();
+                    return;
+                }
+
+            // what DBConnection should do after connection is established
+            function connectionCallback(err) {
+
+                if (err) {
+                    console.log('There was an error connecting to the database: ' + err);
+                    res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
+                    db.disconnect();
+                    return;
+                }
+
+            // get information on all active (running) EC2 instances
+            var qry = "SELECT * FROM reclodb.instances WHERE user_id = ? AND instance_status = 'A'";
+            var params = [user_id];
+
+            function getInstanceCallback(err,results) {
+
+                if (err) {
+                    console.log('getInstance ' + err);
+                    res.status(500).json({error: 401, message: 'Failed to obtain instance information.'}); // MySQL error
+                    db.disconnect();
+                    return;
+                }
+
+                res.status(200).json({message:'Instances obtained successfully', instances: results[0]});
+                db.disconnect();
+            }
+            db.query(qry,params,getInstanceCallback);
+
+            } // connectionCallback
+
+            // Open MySQL database connection
+            var db = new DBConnection();
+            db.connect(connectionCallback.bind(db));
+
+            } // validationCallback
+            corelib.validateToken(token,validationCallback);
+    }else
+    {
+     
+        if(fin > 0)
+        {
+            res.status(200).json({ "message": "Instances obtained successfully", "instances": {"id": 1,"instance_id": "i-a7258851","user_id": "c2cf281d-061c-40e8-8732-7bedb9e763ec","date_created": "2015-01-31T22:00:46.000Z","instance_name": "reclo-recovery-1","ip_address": "54.69.231.81","availability_zone": "us-west-2","instance_state": "running", "date_last_stopped": "2015-04-16T03:05:12.000Z","instance_status": "A"}});
         }
-
-    // what DBConnection should do after connection is established
-    function connectionCallback(err) {
-
-        if (err) {
-            console.log('There was an error connecting to the database: ' + err);
-            res.status(500).json({error: 101, message: 'There was an error connecting to the database'});
-            db.disconnect();
-            return;
+        else{
+              res.status(500).json({error: 401, message: 'Failed to obtain instance information.'}); // MySQL error
         }
-
-    // get information on all active (running) EC2 instances
-    var qry = "SELECT * FROM reclodb.instances WHERE user_id = ? AND instance_status = 'A'";
-    var params = [user_id];
-
-    function getInstanceCallback(err,results) {
-
-        if (err) {
-            console.log('getInstance ' + err);
-            res.status(500).json({error: 401, message: 'Failed to obtain instance information.'}); // MySQL error
-            db.disconnect();
-            return;
-        }
-
-        res.status(200).json({message:'Instances obtained successfully', instances: results[0]});
-        db.disconnect();
+        
     }
-    db.query(qry,params,getInstanceCallback);
-
-    } // connectionCallback
-
-    // Open MySQL database connection
-    var db = new DBConnection();
-    db.connect(connectionCallback.bind(db));
-
-    } // validationCallback
-    corelib.validateToken(token,validationCallback);
-
 });
 
 

@@ -166,7 +166,6 @@ namespace Reclo_Recovery_Manager
                 }
                 else
                 {
-
                     MessageBox.Show("Please select An Instance.", "Reclo Recover Manager");
                 }
             }
@@ -247,7 +246,6 @@ namespace Reclo_Recovery_Manager
                 {
                     aTimer.Stop();
                 }
-
             }
             else
             {
