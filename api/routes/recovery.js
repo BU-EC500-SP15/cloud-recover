@@ -200,6 +200,7 @@ router.post('/:user_id/:backup_id', function(req,res) {
             corelib.validateToken(token,validationCallback);   
     }
     else{ // if testing is on send dummy value back
+         console.log("\n \n \n Warning Running In Test Mode. Change variable test n recover.js to 0 to revert back. \n \n \n");
          switch(testCount)
          {
                   case 0:
@@ -285,6 +286,7 @@ router.post('/:user_id/:backup_id', function(req,res) {
                     break;
                                        
          }
+        console.log("Current State Count is: " + testCount+ "\n");
      }
  });
 
