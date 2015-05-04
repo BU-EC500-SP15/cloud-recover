@@ -1,0 +1,8 @@
+c:\users\administrator.vaio\documents\visual studio 2013\Projects\OpenVPN\OpenVPN\bin\Debug\OpenVPN.exe.config
+c:\users\administrator.vaio\documents\visual studio 2013\Projects\OpenVPN\OpenVPN\bin\Debug\OpenVPN.exe
+c:\users\administrator.vaio\documents\visual studio 2013\Projects\OpenVPN\OpenVPN\bin\Debug\OpenVPN.pdb
+c:\users\administrator.vaio\documents\visual studio 2013\Projects\OpenVPN\OpenVPN\obj\Debug\OpenVPN.csprojResolveAssemblyReference.cache
+c:\users\administrator.vaio\documents\visual studio 2013\Projects\OpenVPN\OpenVPN\obj\Debug\OpenVPN.Resource.resources
+c:\users\administrator.vaio\documents\visual studio 2013\Projects\OpenVPN\OpenVPN\obj\Debug\OpenVPN.csproj.GenerateResource.Cache
+c:\users\administrator.vaio\documents\visual studio 2013\Projects\OpenVPN\OpenVPN\obj\Debug\OpenVPN.exe
+c:\users\administrator.vaio\documents\visual studio 2013\Projects\OpenVPN\OpenVPN\obj\Debug\OpenVPN.pdb
