@@ -382,7 +382,10 @@ namespace RecloBM
         public void StartBackup(String[] source, String destination, int backupType)
         {
             DataManager.setBackupStatus(1); // intializing backup
-            //initializeSoftware();
+            if(!Directory.Exists(workingPath))
+            {
+                initializeSoftware();
+            }
             //MessageBox.Show("Initialized");
             if (backupType == 1)
             {
