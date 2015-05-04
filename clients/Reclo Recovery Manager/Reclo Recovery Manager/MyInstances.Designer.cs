@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MyInstances));
             this.button3 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
@@ -49,6 +50,8 @@
             this.disBTN = new System.Windows.Forms.Button();
             this.connectBTN = new System.Windows.Forms.Button();
             this.spinMSG = new System.Windows.Forms.Label();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
             // button3
@@ -299,11 +302,24 @@
             this.spinMSG.Text = "Instances is running succesfully.";
             this.spinMSG.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // pictureBox1
+            // 
+            this.pictureBox1.BackColor = System.Drawing.Color.Transparent;
+            this.pictureBox1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
+            this.pictureBox1.Location = new System.Drawing.Point(43, 53);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(341, 190);
+            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBox1.TabIndex = 33;
+            this.pictureBox1.TabStop = false;
+            // 
             // MyInstances
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(432, 403);
+            this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.spinMSG);
             this.Controls.Add(this.connectBTN);
             this.Controls.Add(this.disBTN);
@@ -328,6 +344,7 @@
             this.Name = "MyInstances";
             this.RightToLeftLayout = true;
             this.Text = "MyInstances";
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -356,5 +373,6 @@
         private System.Windows.Forms.Button disBTN;
         private System.Windows.Forms.Button connectBTN;
         private System.Windows.Forms.Label spinMSG;
+        private System.Windows.Forms.PictureBox pictureBox1;
     }
 }

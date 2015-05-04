@@ -42,10 +42,17 @@ namespace Reclo_Recovery_Manager
 
         private void button4_Click(object sender, EventArgs e)
         {
-            //Open Backups page
-            this.Hide();
-            Backups f = new Backups();
-            f.Show();
+            if (DataManager.getRecoveryStatus() == "failed" || DataManager.getRecoveryStatus() == "finished")
+            {
+                //Open Backups page
+                this.Hide();
+                Backups f = new Backups();
+                f.Show();
+            }
+            else{
+                updateView();
+            }
+          
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -238,6 +245,7 @@ namespace Reclo_Recovery_Manager
                 connectBTN.Show();
                 disBTN.Show();
                 stopBTN.Show();
+                pictureBox1.Hide();
                 spinMSG.Text = "Instance is running succesfully.";
                 /*
                 if (bTimer.Enabled)
@@ -253,9 +261,11 @@ namespace Reclo_Recovery_Manager
                 connectBTN.Hide();
                 disBTN.Hide();
                 stopBTN.Hide();
+                pictureBox1.Show();
                 Console.WriteLine("RECO STAT: " + DataManager.getRecoveryStatus());
                     if (DataManager.getRecoveryStatus() == "finished")
                     {
+                        nextBTN.Text = "Start Recovery";
                         spinMSG.Text = "Select a backup to spin up.";
                         /*
                         if (bTimer.Enabled)
@@ -266,6 +276,7 @@ namespace Reclo_Recovery_Manager
                     }
                     else if (DataManager.getRecoveryStatus() == "failed")
                     {
+                        nextBTN.Text = "Start Recovery";
                         spinMSG.Text = "Instance has failed spining up... please try again.";
                         /*
                         if (bTimer.Enabled)
@@ -276,6 +287,7 @@ namespace Reclo_Recovery_Manager
                     }
                     else
                     {
+                        nextBTN.Text = "Refresh Status";
                                 spinMSG.Text = "Instance is currently " +
                              DataManager.getRecoveryStatus() +
                              " at " +

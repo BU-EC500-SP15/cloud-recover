@@ -1,1 +1,1 @@
-{ "username":"testuser", "token":"bd49e651fd25473a9168e55bed628cf3","userid":"c2cf281d-061c-40e8-8732-7bedb9e763ec"}
+{"username":"empty", "token":"empty","userid":"empty"}
