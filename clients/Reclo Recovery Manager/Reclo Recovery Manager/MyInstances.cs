@@ -19,7 +19,7 @@ namespace Reclo_Recovery_Manager
         public static System.Timers.Timer bTimer;
         public MyInstances()
         {
-            bTimer = new System.Timers.Timer();
+            //bTimer = new System.Timers.Timer();
             InitializeComponent();
             Rectangle workingArea = Screen.GetWorkingArea(this);
             this.Location = new Point(workingArea.Right - Size.Width,
@@ -28,7 +28,7 @@ namespace Reclo_Recovery_Manager
             clearView();
             updateDataView();
             updateView();
-
+            /*
             if (!DataManager.getInstanceUp() && (DataManager.getRecoveryStatus() != "finished" || DataManager.getRecoveryStatus() != "failed") && !bTimer.Enabled)
             {
                
@@ -36,6 +36,7 @@ namespace Reclo_Recovery_Manager
                 bTimer.Interval = 30000;
                 bTimer.Start();
             }
+             * */
             
         }
 
@@ -142,7 +143,7 @@ namespace Reclo_Recovery_Manager
             {
                 //backupListMsg.Text = "No Backups...";
             }
-            DataManager.setInstanceUp(true);
+         
         }
 
         public void getInstances_callback(string res)
@@ -154,7 +155,19 @@ namespace Reclo_Recovery_Manager
             {
                 // Code to execute on success goes here
                 Console.WriteLine("Success");
+                try{
+                   
+                    DataManager.setInstanceID(DataManager.cleanJSON(json["instances"]["instance_id"].ToString()));
+                    DataManager.setInstanceUp(true);
+                    DataManager.setRecoveryStatus("finished");
+                }
+                catch(KeyNotFoundException)
+                {
+                    DataManager.setInstanceUp(false);
+                }
+                Console.WriteLine("SET INSTANCE IS " + DataManager.getInstanceUp());
                 updateDataView();
+                updateView();
             }
             else
             {
@@ -217,42 +230,49 @@ namespace Reclo_Recovery_Manager
         
         public void updateView()
         {
-            if(DataManager.getInstanceUp())
+           
+            if (DataManager.getInstanceUp())
             {
                 showView();
-                button4.Hide();
+                nextBTN.Hide();
                 connectBTN.Show();
                 disBTN.Show();
                 stopBTN.Show();
                 spinMSG.Text = "Instance is running succesfully.";
+                /*
                 if (bTimer.Enabled)
                 {
                     bTimer.Stop();
                 }
+                 * */
             }
             else
             {
                 hideView();
-                button4.Show();
+                nextBTN.Show();
                 connectBTN.Hide();
                 disBTN.Hide();
                 stopBTN.Hide();
-                       
+                Console.WriteLine("RECO STAT: " + DataManager.getRecoveryStatus());
                     if (DataManager.getRecoveryStatus() == "finished")
                     {
                         spinMSG.Text = "Select a backup to spin up.";
+                        /*
                         if (bTimer.Enabled)
                         {
                             bTimer.Stop();
                         }
+                         * */
                     }
                     else if (DataManager.getRecoveryStatus() == "failed")
                     {
                         spinMSG.Text = "Instance has failed spining up... please try again.";
+                        /*
                         if (bTimer.Enabled)
                         {
                             bTimer.Stop();
                         }
+                         * */
                     }
                     else
                     {
@@ -261,8 +281,6 @@ namespace Reclo_Recovery_Manager
                              " at " +
                              DataManager.getRecoveryPercent();
                     }
-                
-
             }
 
         }
@@ -282,23 +300,28 @@ namespace Reclo_Recovery_Manager
 
         public void stopI_callback(string res)
         {
-            JsonValue json = JsonValue.Parse(res); //Creates JsonValue from response string
-            Console.WriteLine("My Json String = " + json.ToString()); //log that a response was recieved
-
-            if (DataManager.cleanJSON(json["HttpStatus"].ToString()) == "200")
+            try
             {
-                // Code to execute on success goes here
-                Console.WriteLine("Success");
-                DataManager.setInstanceUp(false);
+
+                JsonValue json = JsonValue.Parse(res); //Creates JsonValue from response string
+                Console.WriteLine("My Json String = " + json.ToString()); //log that a response was recieved
+
+                if (DataManager.cleanJSON(json["HttpStatus"].ToString()) == "200")
+                {
+                    // Code to execute on success goes here
+                    Console.WriteLine("Success");
+                    DataManager.setInstanceUp(false);
+                }
+                else
+                {
+                    // Code to execute on error goes here
+                    Console.WriteLine(json["message"]);
+                }
+            }
+            catch (KeyNotFoundException)
+            {
 
             }
-            else
-            {
-                // Code to execute on error goes here
-                Console.WriteLine(json["message"]);
-                
-            }
-        
         }
     }
 }

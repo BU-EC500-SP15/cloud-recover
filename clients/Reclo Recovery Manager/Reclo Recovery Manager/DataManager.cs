@@ -13,7 +13,7 @@ namespace RecloBM
         private static string instanceId = "";
         private static bool isRecoveryPending =false; 
         private static string recoveryPercent = "0%";
-        private static string recoveryStatus = "0";
+        private static string recoveryStatus = "finished";
         private static string recoveryID = "";
         private static bool instanceUp = false;
         private static string userID;

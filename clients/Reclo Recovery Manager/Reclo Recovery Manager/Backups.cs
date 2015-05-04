@@ -189,7 +189,8 @@ namespace Reclo_Recovery_Manager
                 aTimer = new System.Timers.Timer();
                 aTimer.Elapsed += new ElapsedEventHandler(OnTimedEvent);
                 // Set the Interval to 1 minute. 1000 = 1 second.
-                aTimer.Interval = 60000;
+                aTimer.Interval = 30000;
+                aTimer.Start();
             }
             else
             {

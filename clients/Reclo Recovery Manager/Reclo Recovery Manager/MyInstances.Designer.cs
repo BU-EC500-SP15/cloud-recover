@@ -32,7 +32,7 @@
             this.button2 = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
-            this.button4 = new System.Windows.Forms.Button();
+            this.nextBTN = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
@@ -94,20 +94,20 @@
             this.label2.Size = new System.Drawing.Size(433, 35);
             this.label2.TabIndex = 9;
             // 
-            // button4
+            // nextBTN
             // 
-            this.button4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(52)))), ((int)(((byte)(73)))), ((int)(((byte)(94)))));
-            this.button4.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button4.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button4.ForeColor = System.Drawing.Color.White;
-            this.button4.Location = new System.Drawing.Point(12, 327);
-            this.button4.Name = "button4";
-            this.button4.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.button4.Size = new System.Drawing.Size(408, 63);
-            this.button4.TabIndex = 14;
-            this.button4.Text = "Start Recovery";
-            this.button4.UseVisualStyleBackColor = false;
-            this.button4.Click += new System.EventHandler(this.button4_Click);
+            this.nextBTN.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(52)))), ((int)(((byte)(73)))), ((int)(((byte)(94)))));
+            this.nextBTN.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.nextBTN.Font = new System.Drawing.Font("Microsoft Sans Serif", 16.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.nextBTN.ForeColor = System.Drawing.Color.White;
+            this.nextBTN.Location = new System.Drawing.Point(12, 328);
+            this.nextBTN.Name = "nextBTN";
+            this.nextBTN.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.nextBTN.Size = new System.Drawing.Size(408, 63);
+            this.nextBTN.TabIndex = 14;
+            this.nextBTN.Text = "Start Recovery";
+            this.nextBTN.UseVisualStyleBackColor = false;
+            this.nextBTN.Click += new System.EventHandler(this.button4_Click);
             // 
             // label1
             // 
@@ -320,7 +320,7 @@
             this.Controls.Add(this.label5);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.button4);
+            this.Controls.Add(this.nextBTN);
             this.Controls.Add(this.button3);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
@@ -339,7 +339,7 @@
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Button button4;
+        private System.Windows.Forms.Button nextBTN;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;

@@ -101,7 +101,6 @@ public class RecloApiCaller
             };
             
             HttpMethods.httpPOST(nameValueCollection, newURL, callBack);
-
     }
 
      public static void getProgress(string recoveryID, string token, Action<string> callBack)
@@ -112,7 +111,7 @@ public class RecloApiCaller
 
      public static void stopInstance(string instanceID, string token, Action<string> callBack)
      {
-         string newURL = recoveryURL + instancesURL +instanceID + "?token=" + token;
+         string newURL = recoveryURL + instanceID + "?token=" + token;
          HttpMethods.httpDELETE(newURL, callBack);
      }
 
