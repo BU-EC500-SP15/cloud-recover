@@ -5,7 +5,7 @@
  * 4-19-2015
  */
 
-var test = 1;           // Change to 1 to set to dummy responses for testing purposes
+var test = 0;           // Change to 1 to set to dummy responses for testing purposes
 var testCount = 0;      // Leave at 0, this only matters in testing code 
 
 var express = require('express');
@@ -286,6 +286,7 @@ router.post('/:user_id/:backup_id', function(req,res) {
                     break;
                                        
          }
+         testCount++;
         console.log("Current State Count is: " + testCount+ "\n");
      }
  });
