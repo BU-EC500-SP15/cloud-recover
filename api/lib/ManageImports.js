@@ -160,7 +160,7 @@ function handleImporting(recovery_id,conversion_id) {
                   
                 var status_message = data.ConversionTasks[0].ImportInstance.Volumes[0].StatusMessage;
                 var bytes_imported = Number(status_message.split("Downloaded ")[1]); // convert to integer
-                var state_progress = Math.floor((bytes_imported / total_size) * 100);
+                var state_progress = Math.ceil((bytes_imported / total_size) * 100);
             }
 
             // query to run if importing is not yet finished
