@@ -146,7 +146,7 @@ function handlePending(recovery_id,user_id,backup_id) {
             var qry = "UPDATE reclodb.recovery SET no_downloads = ?, " +
                         "no_completed = 0, " + 
                         "recovery_state = 'downloading', " +
-                        "total_progress = ? " +
+                        "total_progress = ?, " +
                         "file_name = ? " +
                         "WHERE recovery_id = ?";
             
