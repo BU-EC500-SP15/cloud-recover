@@ -13,3 +13,18 @@ E:\Dropbox\cloud-recover\cloud-recover\clients\Reclo Recovery Manager\Reclo Reco
 E:\Dropbox\cloud-recover\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo Recovery Manager.exe
 E:\Dropbox\cloud-recover\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo Recovery Manager.pdb
 E:\Dropbox\cloud-recover\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\RecloRecoveryManager.csprojResolveAssemblyReference.cache
+C:\Users\Administrator.VAIO\Documents\GitHub\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\bin\Debug\Reclo Recovery Manager.exe.config
+C:\Users\Administrator.VAIO\Documents\GitHub\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo Recovery Manager.exe
+C:\Users\Administrator.VAIO\Documents\GitHub\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo Recovery Manager.pdb
+C:\Users\Administrator.VAIO\Documents\GitHub\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\bin\Debug\Reclo Recovery Manager.exe
+C:\Users\Administrator.VAIO\Documents\GitHub\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\bin\Debug\Reclo Recovery Manager.pdb
+C:\Users\Administrator.VAIO\Documents\GitHub\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\bin\Debug\Newtonsoft.Json.dll
+C:\Users\Administrator.VAIO\Documents\GitHub\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\bin\Debug\System.Json.dll
+C:\Users\Administrator.VAIO\Documents\GitHub\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\bin\Debug\Newtonsoft.Json.xml
+C:\Users\Administrator.VAIO\Documents\GitHub\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\bin\Debug\System.Json.xml
+C:\Users\Administrator.VAIO\Documents\GitHub\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\RecloRecoveryManager.csprojResolveAssemblyReference.cache
+C:\Users\Administrator.VAIO\Documents\GitHub\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo_Recovery_Manager.Backups.resources
+C:\Users\Administrator.VAIO\Documents\GitHub\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo_Recovery_Manager.loginForm.resources
+C:\Users\Administrator.VAIO\Documents\GitHub\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo_Recovery_Manager.MyInstances.resources
+C:\Users\Administrator.VAIO\Documents\GitHub\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo_Recovery_Manager.Properties.Resources.resources
+C:\Users\Administrator.VAIO\Documents\GitHub\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\RecloRecoveryManager.csproj.GenerateResource.Cache
