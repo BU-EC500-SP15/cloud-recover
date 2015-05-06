@@ -29,17 +29,20 @@ module.exports.validateToken = function(token,validationCallback) {
             if (err) {
                 console.log('validateToken ' + err); // MySQL error
                 validationCallback(1);
+                db.disconnect();
                 return;
             }
 
             if (results[0] == null) {
                 console.log('Invalid token');
                 validationCallback(1);
+                db.disconnect();
                 return;
             }
 
             console.log('Valid token');
             validationCallback(0);
+            db.disconnect();
 
         } // validationCallback
         db.query(qry,params,queryCallback);
