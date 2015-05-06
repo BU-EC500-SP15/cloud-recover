@@ -24,3 +24,18 @@ E:\Dropbox\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\o
 E:\Dropbox\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo Recovery Manager.csproj.GenerateResource.Cache
 E:\Dropbox\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\bin\Debug\Newtonsoft.Json.dll
 E:\Dropbox\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\bin\Debug\Newtonsoft.Json.xml
+E:\Dropbox\cloud-recover\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\bin\Debug\Reclo Recovery Manager.exe.config
+E:\Dropbox\cloud-recover\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo Recovery Manager.exe
+E:\Dropbox\cloud-recover\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo Recovery Manager.pdb
+E:\Dropbox\cloud-recover\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\bin\Debug\Reclo Recovery Manager.exe
+E:\Dropbox\cloud-recover\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\bin\Debug\Reclo Recovery Manager.pdb
+E:\Dropbox\cloud-recover\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\bin\Debug\Newtonsoft.Json.dll
+E:\Dropbox\cloud-recover\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\bin\Debug\System.Json.dll
+E:\Dropbox\cloud-recover\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\bin\Debug\Newtonsoft.Json.xml
+E:\Dropbox\cloud-recover\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\bin\Debug\System.Json.xml
+E:\Dropbox\cloud-recover\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo Recovery Manager.csprojResolveAssemblyReference.cache
+E:\Dropbox\cloud-recover\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo_Recovery_Manager.Backups.resources
+E:\Dropbox\cloud-recover\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo_Recovery_Manager.loginForm.resources
+E:\Dropbox\cloud-recover\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo_Recovery_Manager.MyInstances.resources
+E:\Dropbox\cloud-recover\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo_Recovery_Manager.Properties.Resources.resources
+E:\Dropbox\cloud-recover\cloud-recover\clients\Reclo Recovery Manager\Reclo Recovery Manager\obj\Debug\Reclo Recovery Manager.csproj.GenerateResource.Cache

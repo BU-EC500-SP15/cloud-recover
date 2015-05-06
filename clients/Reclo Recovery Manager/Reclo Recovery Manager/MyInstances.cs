@@ -4,13 +4,18 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Json;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Forms;
+using System.IO.Compression;
+using System.Diagnostics;
 
 namespace Reclo_Recovery_Manager
 {
@@ -37,7 +42,7 @@ namespace Reclo_Recovery_Manager
                 bTimer.Start();
             }
              * */
-            
+            connectBTN.Show();
         }
 
         private void button4_Click(object sender, EventArgs e)
@@ -229,10 +234,50 @@ namespace Reclo_Recovery_Manager
             label4.Show();
             label1.Show();
         }
-
+        public static String workingPath = "C:\\Reclo";
+        public static void startConnection()
+        {
+            //ProcessStartInfo StartInfo = new ProcessStartInfo(workingPath + "\\OpenVPN\\bin\\openvpn-gui-1.0.3.exe", "C:\\MyCloudRecovery\\OpenVPN\\bin\\openvpn-gui-1.0.3.exe --connect client.ovpn");
+            ProcessStartInfo StartInfo = new ProcessStartInfo();
+            StartInfo.FileName = workingPath + "\\OpenVPN\\bin\\openvpn-gui-1.0.3.exe";
+            StartInfo.CreateNoWindow = true;
+            StartInfo.UseShellExecute = false;
+            StartInfo.RedirectStandardInput = true;
+            StartInfo.RedirectStandardOutput = true;
+            StartInfo.RedirectStandardError = true;
+            Process openvpnProcess = new Process();
+            openvpnProcess.StartInfo = StartInfo;
+            //start progress
+            openvpnProcess.Start();
+            openvpnProcess.BeginOutputReadLine();
+        }
+        public static void initialize()
+        {
+            
+            //try
+            //{
+                DirectoryInfo di = Directory.CreateDirectory(workingPath);
+                Assembly _assembly;
+                Stream _lstStream;
+                _assembly = Assembly.GetExecutingAssembly();
+                _lstStream = _assembly.GetManifestResourceStream("RecloRecoveryManager.Resources.OpenVPN.zip");
+                using (var fileStream = File.Create(workingPath + "\\OpenVPN.zip"))
+                {
+                    _lstStream.Seek(0, SeekOrigin.Begin);
+                    _lstStream.CopyTo(fileStream);
+                }
+                string zipPath = workingPath + "\\OpenVPN.zip";
+                string extractPath = workingPath;
+                ZipFile.ExtractToDirectory(zipPath, extractPath);
+            //}
+            //catch
+            //{
+            //}
+        }
         private void button5_Click(object sender, EventArgs e)
         {
-
+            initialize();
+            startConnection();
         }
         
         public void updateView()
@@ -243,7 +288,6 @@ namespace Reclo_Recovery_Manager
                 showView();
                 nextBTN.Hide();
                 connectBTN.Show();
-                disBTN.Show();
                 stopBTN.Show();
                 pictureBox1.Hide();
                 spinMSG.Text = "Instance is running succesfully.";
@@ -259,7 +303,6 @@ namespace Reclo_Recovery_Manager
                 hideView();
                 nextBTN.Show();
                 connectBTN.Hide();
-                disBTN.Hide();
                 stopBTN.Hide();
                 pictureBox1.Show();
                 Console.WriteLine("RECO STAT: " + DataManager.getRecoveryStatus());
@@ -338,6 +381,11 @@ namespace Reclo_Recovery_Manager
             {
 
             }
+        }
+
+        private void pictureBox1_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

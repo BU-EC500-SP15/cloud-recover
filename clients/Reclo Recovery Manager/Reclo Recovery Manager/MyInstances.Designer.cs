@@ -47,7 +47,6 @@
             this.nameLBL = new System.Windows.Forms.Label();
             this.stateLBL = new System.Windows.Forms.Label();
             this.stopBTN = new System.Windows.Forms.Button();
-            this.disBTN = new System.Windows.Forms.Button();
             this.connectBTN = new System.Windows.Forms.Button();
             this.spinMSG = new System.Windows.Forms.Label();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
@@ -251,28 +250,14 @@
             this.stopBTN.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.stopBTN.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.stopBTN.ForeColor = System.Drawing.Color.White;
-            this.stopBTN.Location = new System.Drawing.Point(289, 327);
+            this.stopBTN.Location = new System.Drawing.Point(216, 327);
             this.stopBTN.Name = "stopBTN";
             this.stopBTN.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.stopBTN.Size = new System.Drawing.Size(131, 63);
+            this.stopBTN.Size = new System.Drawing.Size(204, 63);
             this.stopBTN.TabIndex = 28;
             this.stopBTN.Text = "Stop Instance";
             this.stopBTN.UseVisualStyleBackColor = false;
             this.stopBTN.Click += new System.EventHandler(this.stopBTN_Click);
-            // 
-            // disBTN
-            // 
-            this.disBTN.BackColor = System.Drawing.Color.Silver;
-            this.disBTN.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.disBTN.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.disBTN.ForeColor = System.Drawing.Color.White;
-            this.disBTN.Location = new System.Drawing.Point(150, 327);
-            this.disBTN.Name = "disBTN";
-            this.disBTN.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.disBTN.Size = new System.Drawing.Size(138, 63);
-            this.disBTN.TabIndex = 29;
-            this.disBTN.Text = "Disconnect VPN";
-            this.disBTN.UseVisualStyleBackColor = false;
             // 
             // connectBTN
             // 
@@ -283,7 +268,7 @@
             this.connectBTN.Location = new System.Drawing.Point(12, 327);
             this.connectBTN.Name = "connectBTN";
             this.connectBTN.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.connectBTN.Size = new System.Drawing.Size(137, 63);
+            this.connectBTN.Size = new System.Drawing.Size(198, 63);
             this.connectBTN.TabIndex = 30;
             this.connectBTN.Text = "Connect VPN";
             this.connectBTN.UseVisualStyleBackColor = false;
@@ -313,6 +298,7 @@
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox1.TabIndex = 33;
             this.pictureBox1.TabStop = false;
+            this.pictureBox1.Click += new System.EventHandler(this.pictureBox1_Click);
             // 
             // MyInstances
             // 
@@ -322,7 +308,6 @@
             this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.spinMSG);
             this.Controls.Add(this.connectBTN);
-            this.Controls.Add(this.disBTN);
             this.Controls.Add(this.stopBTN);
             this.Controls.Add(this.dateLBL);
             this.Controls.Add(this.zoneLBL);
@@ -371,7 +356,6 @@
         private System.Windows.Forms.Label nameLBL;
         private System.Windows.Forms.Label stateLBL;
         private System.Windows.Forms.Button stopBTN;
-        private System.Windows.Forms.Button disBTN;
         private System.Windows.Forms.Button connectBTN;
         private System.Windows.Forms.Label spinMSG;
         private System.Windows.Forms.PictureBox pictureBox1;
