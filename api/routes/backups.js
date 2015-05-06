@@ -406,6 +406,7 @@ router.put('/uploads/:user_id/:upload_id', function(req, res) {
                             'file_name'     : file_name,
                             'file_size'     : file_size,
                             'backup_status' : 'A',
+                            'type'          : 'incremental',
                         };
 
                         function createBackupCallback(err,results) {
