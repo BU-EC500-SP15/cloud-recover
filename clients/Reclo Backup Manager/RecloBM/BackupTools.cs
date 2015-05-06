@@ -222,30 +222,25 @@ namespace RecloBM
             }
         }
 
-        public void deleteFolder(String destination)
+        public void deleteFolder()
         {
-            String[] outputFolder = new String[50];
-            using (PowerShell PowerShellInstance = PowerShell.Create())
+
+            DirectoryInfo di = new DirectoryInfo(DataManager.getDestination());
+            FileInfo[] files = di.GetFiles("*.vhd").Where(p => p.Extension == ".vhd").ToArray();
+            foreach(FileInfo file in files)
             {
-                PowerShellInstance.AddScript("dir " + destination);
-                Collection<PSObject> PSOutput = PowerShellInstance.Invoke();
-                int i = 0;
-                foreach (PSObject outputItem in PSOutput)
+                try
                 {
-                    if (outputItem != null)
-                    {
-                        outputFolder[i] = outputItem.BaseObject.ToString();
-                        i += 1;
-                    }
+                    file.Attributes = FileAttributes.Normal;
+                    File.Delete(file.FullName);
+                }catch
+                {
+
                 }
             }
-            foreach (String s in outputFolder)
+            if (Directory.Exists(DataManager.getDestination() + "\\" + "BackupTarget"))
             {
-                using (PowerShell PowerShellInstance = PowerShell.Create())
-                {
-                    PowerShellInstance.AddScript("Remove-Item " + destination + s + " -recurse");
-                    PowerShellInstance.Invoke();
-                }
+                Directory.Delete(DataManager.getDestination() + "\\" + "BackupTarget", true);
             }
         }
 
@@ -299,7 +294,8 @@ namespace RecloBM
                 string s = Name[i].ToString();
                 if (s.Length - 20 > 0)
                 {
-                    reName(s.Remove(s.Length - 20), s);
+                    //reName(s.Remove(s.Length - 20), s);
+                    reName("BackupTarget", s);
                 }
                 else
                 {

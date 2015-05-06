@@ -52,6 +52,8 @@ namespace RecloBM
                 MessageBox.Show("Please Setup Your Source And Destination Folders In the Settings Tab.");
             }
             else{
+                BackupTools bt = new BackupTools();
+                bt.deleteFolder();
                 statusLB.Text = "Creating VHD and Uploading it.";
                 pictureBox1.Image = Properties.Resources.backingup;
                  String[] source = { DataManager.getSource()}; //"d:\\BackupTarget"
@@ -80,12 +82,14 @@ namespace RecloBM
                 Console.WriteLine("Success");
                 // find file rename it
                 System.IO.File.Move(DataManager.getDestination() +"test.vhd", DataManager.getDestination() + DataManager.getVHDName());
-
+        
                 S3Uploader.uploadFile(DataManager.getDestination() +  DataManager.getVHDName(),
                     "reclo-client-backups/" + DataManager.getUserID(), 
                     DataManager.cleanJSON(json["credentials"]["AccessKeyId"].ToString()), 
                     DataManager.cleanJSON(json["credentials"]["SecretAccessKey"].ToString()),
                     DataManager.cleanJSON(json["credentials"]["SessionToken"].ToString()));
+
+
                 pictureBox1.Image = Properties.Resources.backed;
                 statusLB.Text = "System is backed up.";
                 label1.Text = "Hey, " + DataManager.getUsername() + " Scheduled Backups are off and your last backup was on MM/DD/YYYY HH:MM tt";
@@ -97,6 +101,10 @@ namespace RecloBM
             }
         }
 
+        public static void threader()
+        {
+
+        }
         private void label3_Click(object sender, EventArgs e)
         {
 

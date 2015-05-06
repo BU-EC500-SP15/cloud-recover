@@ -35,7 +35,7 @@ namespace RecloBM
                 // 1. Upload a file, file name is used as the object key name.
                fileTransferUtility.Upload(filePath, existingBucketName);
                Console.WriteLine("Upload 1 completed");
-
+                
                 /*
                 // 2. Specify object key name explicitly.
                 fileTransferUtility.Upload(filePath,existingBucketName, keyName);
