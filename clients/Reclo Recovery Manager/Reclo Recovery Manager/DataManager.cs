@@ -44,25 +44,31 @@ namespace RecloBM
 
         public static bool userStatus()
         {
+            string ProgramFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            string MyNewPath = System.IO.Path.Combine(ProgramFiles, "../Reclo");
+            string input =  File.ReadAllText(Path.Combine(MyNewPath, "RMData.txt"));
+            Console.WriteLine("input out :"+input);
 
-          
-            RegistryKey key = Registry.LocalMachine.OpenSubKey("Software", true);
-            key = key.OpenSubKey("RecloRecoveryManager", true);
-            key = key.OpenSubKey("AppVersion", true);
-            string userName = (string)key.GetValue("userName");
-            string Ntoken = (string)key.GetValue("token");
-            string  nuserid = (string)key.GetValue("userID");
-           
-            if (userName == null)
+            //convert to json then read values
+            try
+            {
+                JsonValue json = JsonValue.Parse(input);
+                Console.WriteLine(json["username"].ToString());
+                if (DataManager.cleanJSON(json["userId"].ToString()).Length <2)
+                {
+                    return false;
+                }
+                else
+                {
+                    username = DataManager.cleanJSON(json["username"].ToString());
+                    token = DataManager.cleanJSON(json["token"].ToString());
+                    userID = DataManager.cleanJSON(json["userId"].ToString());
+                    return true;
+                }
+            }
+            catch
             {
                 return false;
-            }
-            else
-            {
-                username = userName;
-                token = Ntoken;
-                userID = nuserid;
-                return true;
             }
         }
 
@@ -71,6 +77,14 @@ namespace RecloBM
             username = nusername;
             token = ntoken;
             userID = nuserid;
+
+            JsonValue json;
+            string ProgramFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            string MyNewPath = System.IO.Path.Combine(ProgramFiles, "../Reclo");
+          
+            string hi = "{ \"username\": \""+ username + "\", \"token\": \""+token+"\", \"userId\": \""+userID+"\"}";
+            Console.WriteLine("String to be saved: " + hi);
+             File.WriteAllText(Path.Combine(MyNewPath, "RMData.txt"), hi);
 
         }
 
@@ -96,8 +110,11 @@ namespace RecloBM
 
         public static void clearUser()
         {
-            string userJSON = "{\"username\":\"empty\", \"token\":\"empty\",\"userid\":\"empty\"}";
-            System.IO.File.WriteAllText(@"userData.txt", userJSON);
+            string ProgramFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            string MyNewPath = System.IO.Path.Combine(ProgramFiles, "../Reclo");
+            string userJSON = "{\"username\":\"\", \"token\":\"\",\"userid\":\"\"}";
+
+             File.WriteAllText(Path.Combine(MyNewPath, "RMData.txt"), userJSON);
         }
 
 

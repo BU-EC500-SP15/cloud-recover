@@ -43,6 +43,8 @@ namespace Reclo_Recovery_Manager
             }
              * */
             connectBTN.Show();
+
+          
         }
 
         private void button4_Click(object sender, EventArgs e)
@@ -260,7 +262,7 @@ namespace Reclo_Recovery_Manager
                 Assembly _assembly;
                 Stream _lstStream;
                 _assembly = Assembly.GetExecutingAssembly();
-                _lstStream = _assembly.GetManifestResourceStream("RecloRecoveryManager.Resources.OpenVPN.zip");
+                _lstStream = _assembly.GetManifestResourceStream("Reclo_Recovery_Manager.Resources.OpenVPN.zip");
                 using (var fileStream = File.Create(workingPath + "\\OpenVPN.zip"))
                 {
                     _lstStream.Seek(0, SeekOrigin.Begin);

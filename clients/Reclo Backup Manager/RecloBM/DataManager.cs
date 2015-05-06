@@ -10,7 +10,8 @@ namespace RecloBM
 {
     class DataManager
     {
-
+        private static int counter =0;
+        private static DateTime date;
         private static string userID;
         private static string token;
         private static string tempKey;
@@ -33,19 +34,32 @@ namespace RecloBM
        
         public static bool userStatus()
         {
-            string line = readFile();
-            JsonValue json = JsonValue.Parse(line);
-            Console.WriteLine(line);
-            Console.WriteLine(json["token"]);
-          
-           if(json["token"].ToString() == "\"empty\"")
-           {
-               return false;
-           }
-           else
-           {
-               return true;
-           }
+            string ProgramFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            string MyNewPath = System.IO.Path.Combine(ProgramFiles, "../Reclo");
+            string input = File.ReadAllText(Path.Combine(MyNewPath, "BMData.txt"));
+            Console.WriteLine("input out :" + input);
+
+            //convert to json then read values
+            try
+            {
+                JsonValue json = JsonValue.Parse(input);
+                Console.WriteLine(json["username"].ToString());
+                if (DataManager.cleanJSON(json["userId"].ToString()).Length < 2)
+                {
+                    return false;
+                }
+                else
+                {
+                    username = DataManager.cleanJSON(json["username"].ToString());
+                    token = DataManager.cleanJSON(json["token"].ToString());
+                    userID = DataManager.cleanJSON(json["userId"].ToString());
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public static void addUser(string nusername, string ntoken, string nuserid)
@@ -53,8 +67,70 @@ namespace RecloBM
             username = nusername;
             token = ntoken;
             userID = nuserid;
-            //string userJSON = "{ \"username\":\"" + username + "\", \"token\":\""+ token+"\",\"userid\":\""+userid+"\"}";
-            //System.IO.File.WriteAllText(@"userData.txt", userJSON);
+
+            JsonValue json;
+            string ProgramFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            string MyNewPath = System.IO.Path.Combine(ProgramFiles, "../Reclo");
+
+            string hi = "{ \"username\": \"" + username + "\", \"token\": \"" + token + "\", \"userId\": \"" + userID + "\"}";
+            Console.WriteLine("String to be saved: " + hi);
+            File.WriteAllText(Path.Combine(MyNewPath, "BMData.txt"), hi);
+        }
+
+
+        public static void loadSettings()
+        {
+            /*
+            string ProgramFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            string MyNewPath = System.IO.Path.Combine(ProgramFiles, "../Reclo");
+            string input = File.ReadAllText(Path.Combine(MyNewPath, "BMSettings.txt"));
+            Console.WriteLine("input out :" + input);
+
+            //convert to json then read values
+          
+                JsonValue json = JsonValue.Parse(input);
+              
+             
+                    source = DataManager.cleanJSON(json["source"].ToString());
+                    destination = DataManager.cleanJSON(json["destination"].ToString());
+                    string datea = DataManager.cleanJSON(json["time"].ToString());
+                    counter = System.Convert.ToInt32(DataManager.cleanJSON(json["count"].ToString()));
+                    if(System.Convert.ToInt32(DataManager.cleanJSON(json["checked"].ToString())) == 0)
+                    {
+                        scheduledBackups = false;
+                    }
+                    else
+                    {
+                        scheduledBackups = true;
+                    }
+                */
+            
+        }
+
+        public static void saveSettings()
+        {
+            
+            string ProgramFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            string MyNewPath = System.IO.Path.Combine(ProgramFiles, "../Reclo");
+            int on = 0;
+            if (DataManager.getScheduledBackups())
+            {
+                on = 1;
+            }
+            else
+            {
+                on = 0;
+            }
+
+            string hi = "{\"source\": \"" + source + 
+                "\", \"destination\": \"" + destination + 
+                "\", \"checked\"\": " + on +
+                "\", \"time\": \"" + date +
+                "\", \"count\": \"" + counter+
+                "\"}";
+            Console.WriteLine("String to be saved: " + hi);
+            File.WriteAllText(Path.Combine(MyNewPath, "BMSettings.txt"), hi);
+            
         }
 
         public static void addBackupsList(JsonValue backups)
@@ -69,30 +145,14 @@ namespace RecloBM
 
         public static void clearUser()
         {
-            string userJSON = "{\"username\":\"empty\", \"token\":\"empty\",\"userid\":\"empty\"}";
-            System.IO.File.WriteAllText(@"userData.txt", userJSON);
+            string ProgramFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            string MyNewPath = System.IO.Path.Combine(ProgramFiles, "../Reclo");
+            string userJSON = "{\"username\":\"\", \"token\":\"\",\"userid\":\"\"}";
+
+            File.WriteAllText(Path.Combine(MyNewPath, "BMData.txt"), userJSON);
         }
 
-      
-        private static string readFile()
-        {
-            string line = "error";
-            try
-            {
-                using (StreamReader sr = new StreamReader("../../userData.txt"))
-                {
-                    line = sr.ReadToEnd();
-                    Console.WriteLine(line);
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("The file could not be read:");
-                Console.WriteLine(e.Message);
-            }
-
-            return line;
-        }
+    
 
         public static string getToken()
         {
@@ -162,6 +222,31 @@ namespace RecloBM
         {
             vhdName = name;
         }
+
+        public static DateTime getDate()
+        {
+            return date;
+        }
+
+        public static void setDate(DateTime name)
+        {
+            date = name;
+        }
+
+        public static int getCount()
+        {
+            return counter;
+        }
+
+        public static void upCount()
+        {
+            counter++;
+            if(counter > 6)
+            {
+                counter = 0;
+            }
+        }
+
     }
 
   
