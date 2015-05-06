@@ -116,6 +116,7 @@ function handleImporting(recovery_id,conversion_id) {
 
     if (conversion_id == 'tbd') {
         console.log('Import initializing. Cannot query progress yet');
+        db.disconnect();
         return;
     }
 
