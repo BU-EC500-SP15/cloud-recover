@@ -115,8 +115,6 @@ namespace RecloBM
             string userJSON = "{\"username\":\"\", \"token\":\"\",\"userid\":\"\"}";
 
              File.WriteAllText(Path.Combine(MyNewPath, "RMData.txt"), userJSON);
-       
-           
         }
 
 

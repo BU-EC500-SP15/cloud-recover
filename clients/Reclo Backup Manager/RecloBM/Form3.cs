@@ -45,13 +45,20 @@ namespace RecloBM
             //Second Reschedule todays backup
             //Start a backup immedietly
             //Check that source and destination are set up
-
+            
             
             if (DataManager.getSource() == "Select Drive..." || DataManager.getDestination() == "Select Location...")
             {
                 MessageBox.Show("Please Setup Your Source And Destination Folders In the Settings Tab.");
             }
             else{
+                // turn timed backups off
+
+
+
+
+
+
                 BackupTools bt = new BackupTools();
                 bt.deleteFolder();
                 statusLB.Text = "Creating VHD and Uploading it.";
@@ -59,9 +66,9 @@ namespace RecloBM
                  String[] source = { DataManager.getSource()}; //"d:\\BackupTarget"
                  String destination = DataManager.getDestination();
                 //StartBackup is the function you need
-                BackupTools Backup = new BackupTools();
+             
                 InitTimer();
-                Backup.StartBackup(source, destination, 0);
+                bt.StartBackup(source, destination, 0);
                 //Create name
                 string dater = DateTime.Now.ToString("MMddyyyyhmmtt");
                 string nameVHD = "Backup-"+dater+".vhd";
@@ -89,10 +96,8 @@ namespace RecloBM
                     DataManager.cleanJSON(json["credentials"]["SecretAccessKey"].ToString()),
                     DataManager.cleanJSON(json["credentials"]["SessionToken"].ToString()));
 
-
-                pictureBox1.Image = Properties.Resources.backed;
-                statusLB.Text = "System is backed up.";
-                label1.Text = "Hey, " + DataManager.getUsername() + " Scheduled Backups are off and your last backup was on MM/DD/YYYY HH:MM tt";
+                RecloApiCaller.completeUpload(DataManager.getUserID(), DataManager.getToken(), "Success", DataManager.cleanJSON(json["upload_id"].ToString()), (string res2) => success_callback(res2));
+             
             }
             else
             {
@@ -100,6 +105,29 @@ namespace RecloBM
                 Console.WriteLine(json["message"]);
             }
         }
+
+        
+        public void success_callback(string res)
+        {
+            JsonValue json = JsonValue.Parse(res); //Creates JsonValue from response string
+            Console.WriteLine("My Json String = " + json.ToString()); //log that a response was recieved
+            if (DataManager.cleanJSON(json["HttpStatus"].ToString()) == "200")
+            {
+                // Code to execute on success goes here
+                Console.WriteLine("Success");
+
+                pictureBox1.Image = Properties.Resources.backed;
+                statusLB.Text = "System is backed up.";
+                label1.Text = "Hey, " + DataManager.getUsername() + " Scheduled Backups are off and your last backup was on "+ DateTime.Now;
+            }
+            else
+            {
+                // Code to execute on error goes here
+                Console.WriteLine(json["message"]);
+            }
+        }
+
+
 
         public static void threader()
         {
