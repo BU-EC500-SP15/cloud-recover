@@ -141,14 +141,16 @@ function handlePending(recovery_id,user_id,backup_id) {
             }
             
             backups = results[2]; // first 2 results (0-1) are garbage from the "SET" statements
+            var file_name   = backups[0].file_name;
             
             var qry = "UPDATE reclodb.recovery SET no_downloads = ?, " +
                         "no_completed = 0, " + 
                         "recovery_state = 'downloading', " +
                         "total_progress = ? " +
+                        "file_name = ? " +
                         "WHERE recovery_id = ?";
             
-            var params = [backups.length, progress.downloading, recovery_id];
+            var params = [backups.length, progress.downloading, file_name, recovery_id];
             
             function startDownloadCallback(err,results) {
                 
@@ -159,8 +161,6 @@ function handlePending(recovery_id,user_id,backup_id) {
                     db.disconnect(); 
                     return;
                 }               
-                
-                var file_name   = backups[0].file_name;
                  
                 // download full backup
                 console.log('Downloading file ' + file_name);

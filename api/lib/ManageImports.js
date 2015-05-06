@@ -114,6 +114,12 @@ function handleImporting(recovery_id,conversion_id) {
 
     console.log('Handling IMPORTING recovery task ' + recovery_id);
 
+    if (conversion_id == 'tbd') {
+        console.log('Import initializing. Cannot query progress yet');
+        return;
+    }
+
+    // importing initialized, ready to monitor progress
     function connectionCallback(err) {
 
         if (err) {
