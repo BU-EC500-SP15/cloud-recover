@@ -25,38 +25,6 @@ namespace Reclo_Recovery_Manager
         {
             InitializeComponent();
             logErrorLB.Text = "";
-
-
-            //Check if folder exists
-            string ProgramFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-            string MyNewPath = System.IO.Path.Combine(ProgramFiles, "../Reclo");
-            string My = System.IO.Path.Combine(MyNewPath, "/BMData.txt");
-            if (!Directory.Exists(MyNewPath))
-            {
-                System.IO.Directory.CreateDirectory(MyNewPath);
-                Console.WriteLine("Created Reclo");
-           
-            }
-
-            if (!System.IO.File.Exists(@"c:\Reclo\BMData.txt"))
-            {
-                   File.WriteAllText(Path.Combine(MyNewPath, "BMData.txt"), "");
-                   Console.WriteLine("Created BMData.txt");
-            }
-            else{
-                /*
-                if (DataManager.userStatus())
-                {
-                     this.Hide();
-                     MyInstances f = new MyInstances();
-                     f.Show();
-                }
-                else{
-
-                }
-                */
-            }
-     
         }
 
         private void loginBTN_Click(object sender, EventArgs e)

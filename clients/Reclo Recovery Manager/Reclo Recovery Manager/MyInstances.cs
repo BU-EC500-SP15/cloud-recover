@@ -43,6 +43,8 @@ namespace Reclo_Recovery_Manager
             }
              * */
             connectBTN.Show();
+
+          
         }
 
         private void button4_Click(object sender, EventArgs e)
