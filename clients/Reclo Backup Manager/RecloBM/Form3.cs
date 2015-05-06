@@ -60,7 +60,12 @@ namespace RecloBM
                 BackupTools Backup = new BackupTools();
                 InitTimer();
                 Backup.StartBackup(source, destination, 0);
-                RecloApiCaller.authorizeUpload(DataManager.getUserID(), DataManager.getToken(), "jb", "20", (string res) => upload_callback(res));
+                //Create name
+                string dater = DateTime.Now.ToString("MMddyyyyhmmtt");
+                string nameVHD = "Backup-"+dater+".vhd";
+                DataManager.setVHDName(nameVHD);
+
+                RecloApiCaller.authorizeUpload(DataManager.getUserID(), DataManager.getToken(), DataManager.getVHDName(), "20", (string res) => upload_callback(res));
             }
           
         }
@@ -73,6 +78,9 @@ namespace RecloBM
             {
                 // Code to execute on success goes here
                 Console.WriteLine("Success");
+                // find file rename it
+                System.IO.File.Move(DataManager.getDestination() +"test.vhd", DataManager.getDestination() + DataManager.getVHDName());
+
                 S3Uploader.uploadFile(DataManager.getDestination() +  DataManager.getVHDName(),
                     "reclo-client-backups/" + DataManager.getUserID(), 
                     DataManager.cleanJSON(json["credentials"]["AccessKeyId"].ToString()), 

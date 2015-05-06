@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Json;
@@ -43,17 +44,24 @@ namespace RecloBM
 
         public static bool userStatus()
         {
-            string line = readFile();
-            JsonValue json = JsonValue.Parse(line);
-            Console.WriteLine(line);
-            Console.WriteLine(json["token"]);
 
-            if (json["token"].ToString() == "\"empty\"")
+          
+            RegistryKey key = Registry.LocalMachine.OpenSubKey("Software", true);
+            key = key.OpenSubKey("RecloRecoveryManager", true);
+            key = key.OpenSubKey("AppVersion", true);
+            string userName = (string)key.GetValue("userName");
+            string Ntoken = (string)key.GetValue("token");
+            string  nuserid = (string)key.GetValue("userID");
+           
+            if (userName == null)
             {
                 return false;
             }
             else
             {
+                username = userName;
+                token = Ntoken;
+                userID = nuserid;
                 return true;
             }
         }
@@ -63,8 +71,7 @@ namespace RecloBM
             username = nusername;
             token = ntoken;
             userID = nuserid;
-            //string userJSON = "{ \"username\":\"" + username + "\", \"token\":\""+ token+"\",\"userid\":\""+userid+"\"}";
-            //System.IO.File.WriteAllText(@"userData.txt", userJSON);
+
         }
 
         public static void addBackupsList(JsonValue backups)

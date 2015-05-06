@@ -312,29 +312,36 @@ namespace RecloBM
 
         public void initializeSoftware()
         {
-            DirectoryInfo di = Directory.CreateDirectory(workingPath);
-            Assembly _assembly;
-            Stream _lstStream;
-            _assembly = Assembly.GetExecutingAssembly();
-            _lstStream = _assembly.GetManifestResourceStream("RecloBM.Resources.Cobian Backup 8.zip");
-            using (var fileStream = File.Create(workingPath + "\\Cobian Backup 8.zip"))
+            try
             {
-                _lstStream.Seek(0, SeekOrigin.Begin);
-                _lstStream.CopyTo(fileStream);
+                DirectoryInfo di = Directory.CreateDirectory(workingPath);
+                Assembly _assembly;
+                Stream _lstStream;
+                _assembly = Assembly.GetExecutingAssembly();
+                _lstStream = _assembly.GetManifestResourceStream("RecloBM.Resources.Cobian Backup 8.zip");
+                using (var fileStream = File.Create(workingPath + "\\Cobian Backup 8.zip"))
+                {
+                    _lstStream.Seek(0, SeekOrigin.Begin);
+                    _lstStream.CopyTo(fileStream);
+                }
+                string zipPath = workingPath + "\\Cobian Backup 8.zip";
+                string extractPath = workingPath;
+                ZipFile.ExtractToDirectory(zipPath, extractPath);
+                _lstStream = _assembly.GetManifestResourceStream("RecloBM.Resources.Disk2vhd.zip");
+                using (var fileStream = File.Create(workingPath + "\\Disk2vhd.zip"))
+                {
+                    _lstStream.Seek(0, SeekOrigin.Begin);
+                    _lstStream.CopyTo(fileStream);
+                }
+                zipPath = workingPath + "\\disk2vhd.zip";
+                extractPath = workingPath;
+                ZipFile.ExtractToDirectory(zipPath, extractPath);
+                //Console.WriteLine("Initialized");
             }
-            string zipPath = workingPath + "\\Cobian Backup 8.zip";
-            string extractPath = workingPath;
-            ZipFile.ExtractToDirectory(zipPath, extractPath);
-            _lstStream = _assembly.GetManifestResourceStream("RecloBM.Resources.Disk2vhd.zip");
-            using (var fileStream = File.Create(workingPath + "\\Disk2vhd.zip"))
+            catch
             {
-                _lstStream.Seek(0, SeekOrigin.Begin);
-                _lstStream.CopyTo(fileStream);
+
             }
-            zipPath = workingPath + "\\disk2vhd.zip";
-            extractPath = workingPath;
-            ZipFile.ExtractToDirectory(zipPath, extractPath);
-            //Console.WriteLine("Initialized");
         }
 
         public void NewTask(String getTaskName, String getID, String getBackupType, String[] getSource, String getDestination, String getSchedule)
@@ -382,7 +389,7 @@ namespace RecloBM
         public void StartBackup(String[] source, String destination, int backupType)
         {
             DataManager.setBackupStatus(1); // intializing backup
-            if(!Directory.Exists(workingPath))
+            if (!Directory.Exists(workingPath))
             {
                 initializeSoftware();
             }

@@ -158,6 +158,10 @@ namespace RecloBM
         {
             return vhdName;
         }
+        public static string setVHDName(string name)
+        {
+            vhdName = name;
+        }
     }
 
   

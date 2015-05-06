@@ -126,20 +126,47 @@ namespace RecloBM
             DataManager.setDestination(destTB.Text);
             DataManager.setSource(sourceTB.Text);
             DataManager.setScheduledBackups(checkBox1.Checked);
+            if(checkBox1.Checked)
+            {
+                //Start timer for every minute
+                InitTimer();
+            }
        
+        }
+
+        private Timer timer1;
+        public void InitTimer()
+        {
+            timer1 = new Timer();
+            timer1.Tick += new EventHandler(timer1_Tick);
+            timer1.Interval = 60000; // in miliseconds
+            timer1.Start();
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+           //Check if time since last backup and scheduled has been exceeded
+           /*
+            if()
+            {
+
+            }
+            else
+            {
+
+            }
+            */
         }
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
 
             if (checkBox1.Checked)
-            {
-               
+            {   
                 dateTimePicker1.Enabled = true;
             }
             else
             {
-
                 dateTimePicker1.Enabled = false;
             }
         }
