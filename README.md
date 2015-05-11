@@ -1,5 +1,3 @@
-# cloud-recover
-
 Recovery in the Cloud
 =====================
 
@@ -71,3 +69,51 @@ Spring 2015
         <td>Minhan Xiang</td><td><a href='mailto:xmh@bu.edu'>xmh@bu.edu</a></td>
     </tr>   
 </table>
+
+Setup Instructions
+==================
+
+ReClo API Server
+----------------
+
+### Installing the Server ###
+
+Our main API server runs on an AWS AMI Linux instance. We use the AMI setup as it comes pre-configured with the AWS command line interface (CLI). We chose Linux instead of a Windows server for its customizability and ease of use.
+
+After starting a free-tier instance (30GB storage), [install Node.js](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager).
+
+You can then use the node package manager (npm) to install [forever.js](https://github.com/foreverjs/forever), a simple CLI tool that keeps a node.js script running continuously, forever. We use this to keep our API server running.  
+`sudo npm install forever`
+
+The remaining node packages are already part of our repository. Simply [download the API folder](https://github.com/BU-EC500-SP15/cloud-recover/tree/master/api) to your instance. This should be located in the directory:  
+`~/cloud-recover/api`
+
+### Running the Server ###
+
+To start the API server, run:  
+`cd ~/cloud-recover/api  
+forever start -l forever.log -o ./logs/out.log -e ./logs/err.log ./bin/www`
+ 
+This creates several logs that you can check to mointor the server's activity. The master log is in:  
+`~/.forever/forever.log`
+ 
+Output and error logs are maintained in:  
+`api/logs/out.log  
+api/logs/err.log`
+ 
+### Stopping the Server ###
+ 
+To stop the server, run `forever list` and note the process ID (PID) of script `bin/www`.
+Then run `forever stop <pid>`.
+ 
+Before you can restart the server, you need to clear the previous run's logs:  
+`rm ~/.forever/forever.log` 
+  
+ 
+
+
+
+
+
+
+
