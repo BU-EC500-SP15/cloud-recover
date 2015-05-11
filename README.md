@@ -113,37 +113,31 @@ Before you can restart the server, you need to clear the previous run's logs:
 
 Several cron jobs are used to perform background tasks and to manage API resources. The crontab can easily be edited using `env EDITOR=nano crontab -e`. Add the following jobs to your cron tab:
 
-<p><code>
-# disable mail notifications<br/>
-MAILTO=""<br/><br/>
+1. deactivates expired tokens once per day at 4:01am UTC  
+`01 04 * * * /usr/bin/node ~/cloud-recover/api/lib/ManageSession.js`
 
-# deactivates expired tokens once per day at 4:01am UTC<br/>
-01 04 * * * /usr/bin/node ~/cloud-recover/api/lib/ManageSession.js<br/><br/>
+2. terminates recovered instances after stopped for 2 weeks  
+`02 04 * * * /usr/bin/node ~/cloud-recover/api/lib/FreeInstances.js`
 
-# terminates recovered instances after stopped for 2 weeks<br/>
-02 04 * * * /usr/bin/node ~/cloud-recover/api/lib/FreeInstances.js<br/><br/>
+3. fails recovery tasks that are more than 24 hours old  
+`03 04 * * * /usr/bin/node ~/cloud-recover/api/lib/FailRecovery.js`
 
-# fails recovery tasks that are more than 24 hours old<br/>
-03 04 * * * /usr/bin/node ~/cloud-recover/api/lib/FailRecovery.js<br/><br/>
+4. scans for pending recovery tasks once per minute  
+`* * * * * /usr/bin/node ~/cloud-recover/api/lib/ManagePending.js`
 
-# scans for pending recovery tasks once per minute<br/>
-* * * * * /usr/bin/node ~/cloud-recover/api/lib/ManagePending.js<br/><br/>
+5. scans for downloading recovery tasks once per minute  
+`* * * * * /usr/bin/node ~/cloud-recover/api/lib/ManageDownloads.js`
 
-# scans for downloading recovery tasks once per minute<br/>
-* * * * * /usr/bin/node ~/cloud-recover/api/lib/ManageDownloads.js<br/><br/>
+6. scans for importing recovery tasks once per minute  
+`* * * * * /usr/bin/node ~/cloud-recover/api/lib/ManageImports.js`
 
-# scans for importing recovery tasks once per 5 minutes<br/>
-* * * * * /usr/bin/node ~/cloud-recover/api/lib/ManageImports.js<br/><br/>
-
-# scans for finishing recovery tasks once per minute<br/>
-* * * * * /usr/bin/node ~/cloud-recover/api/lib/FinishRecovery.js<br/>
-</code></p>
-
+7. scans for finishing recovery tasks once per minute  
+`* * * * * /usr/bin/node ~/cloud-recover/api/lib/FinishRecovery.js`
 
 Client Applications
 -------------------
 
-Our [client applications(https://github.com/BU-EC500-SP15/cloud-recover/tree/master/clients) are still in the developmental stage. Download them to your Windows computer and run them using MS Visual Studio or a similar development tool. Our clients talk directly to our server at a specific IP address. Change the root of our API requests:  
+Our [client applications](https://github.com/BU-EC500-SP15/cloud-recover/tree/master/clients) are still in the developmental stage. Download them to your Windows computer and run them using MS Visual Studio or a similar development tool. Our clients talk directly to our server at a specific IP address. Change the root of our API requests:  
 `private static string urlhead = 'http://52.24.77.177:3000/'`  
 to match the IP address of your server. Our API server runs on port 3000.
   
