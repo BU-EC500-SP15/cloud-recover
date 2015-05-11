@@ -88,6 +88,8 @@ You can then use the node package manager (npm) to install [forever.js](https://
 The remaining node packages are already part of our repository. Simply [download the API folder](https://github.com/BU-EC500-SP15/cloud-recover/tree/master/api) to your instance. This should be located in the directory:  
 `~/cloud-recover/api`
 
+Lastly, create a folder at the root `mkdir /backups-tmp/` to hold backups during the import process. Because backups are generally large, we mounted a separate 100GB volume for this purpose. You may need to change the permissions of this folder `sudo chmod 700 /backups-tmp/`.
+
 ### Running the Server ###
 
 To start the API server, run:  
