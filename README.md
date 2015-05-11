@@ -107,7 +107,15 @@ To stop the server, run `forever list` and note the process ID (PID) of script `
 Then run `forever stop <pid>`.
  
 Before you can restart the server, you need to clear the previous run's logs:  
-`rm ~/.forever/forever.log` 
+`rm ~/.forever/forever.log`
+
+
+Client Applications
+-------------------
+
+Our [client applications(https://github.com/BU-EC500-SP15/cloud-recover/tree/master/clients) are still in the developmental stage. Download them to your Windows computer and run them using MS Visual Studio or a similar development tool. Our clients talk directly to our server at a specific IP address. Change the root of our API requests:  
+`private static string urlhead = 'http://52.24.77.177:3000/'`  
+to match the IP address of your server. Our API server runs on port 3000.
   
  
 
