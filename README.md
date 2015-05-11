@@ -109,6 +109,36 @@ Then run `forever stop <pid>`.
 Before you can restart the server, you need to clear the previous run's logs:  
 `rm ~/.forever/forever.log`
 
+### Cron Jobs ###
+
+Several cron jobs are used to perform background tasks and to manage API resources. The crontab can easily be edited using `env EDITOR=nano crontab -e`. Add the following jobs to your cron tab:
+
+<p><code>
+# disable mail notifications<br/>
+MAILTO=""<br/><br/>
+
+# deactivates expired tokens once per day at 4:01am UTC<br/>
+01 04 * * * /usr/bin/node ~/cloud-recover/api/lib/ManageSession.js<br/><br/>
+
+# terminates recovered instances after stopped for 2 weeks<br/>
+02 04 * * * /usr/bin/node ~/cloud-recover/api/lib/FreeInstances.js<br/><br/>
+
+# fails recovery tasks that are more than 24 hours old<br/>
+03 04 * * * /usr/bin/node ~/cloud-recover/api/lib/FailRecovery.js<br/><br/>
+
+# scans for pending recovery tasks once per minute<br/>
+* * * * * /usr/bin/node ~/cloud-recover/api/lib/ManagePending.js<br/><br/>
+
+# scans for downloading recovery tasks once per minute<br/>
+* * * * * /usr/bin/node ~/cloud-recover/api/lib/ManageDownloads.js<br/><br/>
+
+# scans for importing recovery tasks once per 5 minutes<br/>
+* * * * * /usr/bin/node ~/cloud-recover/api/lib/ManageImports.js<br/><br/>
+
+# scans for finishing recovery tasks once per minute<br/>
+* * * * * /usr/bin/node ~/cloud-recover/api/lib/FinishRecovery.js<br/>
+</code></p>
+
 
 Client Applications
 -------------------
