@@ -113,7 +113,8 @@ Before you can restart the server, you need to clear the previous run's logs:
 
 ### Cron Jobs ###
 
-Several cron jobs are used to perform background tasks and to manage API resources. The crontab can easily be edited using `env EDITOR=nano crontab -e`. Add the following jobs to your cron tab:
+Several cron jobs are used to perform background tasks and to manage API resources. The crontab can easily be edited using
+`env EDITOR=nano crontab -e`. Add the following jobs to your cron tab:
 
 1. deactivates expired tokens once per day at 4:01am UTC  
 `01 04 * * * /usr/bin/node ~/cloud-recover/api/lib/ManageSession.js`
@@ -142,12 +143,207 @@ Client Applications
 Our [client applications](https://github.com/BU-EC500-SP15/cloud-recover/tree/master/clients) are still in the developmental stage. Download them to your Windows computer and run them using MS Visual Studio or a similar development tool. Our clients talk directly to our server at a specific IP address. Change the root of our API requests:  
 `private static string urlhead = 'http://52.24.77.177:3000/'`  
 to match the IP address of your server. Our API server runs on port 3000.
-  
- 
 
+AWS Resources
+-------------
 
+### S3 Storage ###
 
+We use a master bucket in S3 to hold all of our client backups, `reclo-client-backups`. Backups for each client are grouped into folders named using each clients unique ID. Create this bucket in S3 and give your API server permission to access it.
 
+### RDS MySQL Database ###
 
+All or our records are maintained in a single database, `reclodb`. This holds records for:
 
+* users
+* session tokens
+* backups
+* uploads
+* recovery tasks
+* running instances
 
+Create the following tables in a new MySQL database:
+
+<!-- users table -->
+<table>
+    <tr>
+        <td><strong>users</strong></td>
+    </tr>
+    <tr style="background-color:#DDDDDD">
+        <td>id</td>
+        <td>user_id</td>
+        <td>username</td>
+        <td>email</td>
+        <td>hash</td>
+        <td>date_created</td>
+        <td>user_status</td>
+    </tr>
+    <tr>
+        <td>INT</td>
+        <td>VARCHAR(36)</td>
+        <td>VARCHAR(32)</td>
+        <td>VARCHAR(255)</td>
+        <td>VARCHAR(60)</td>
+        <td>DATETIME</td>
+        <td>VARCHAR(1)</td>
+    </tr>
+</table>
+
+<!-- tokens table -->
+<table>
+    <tr>
+        <td><strong>tokens</strong></td>
+    </tr>
+    <tr style="background-color:#DDDDDD">
+        <td>id</td>
+        <td>token_id</td>
+        <td>user_id</td>
+        <td>date_created</td>
+        <td>date_deactivated</td>
+        <td>token_status</td>
+    </tr>
+    <tr>
+        <td>INT</td>
+        <td>VARCHAR(32)</td>
+        <td>VARCHAR(36)</td>
+        <td>DATETIME</td>
+        <td>DATETIME</td>
+        <td>VARCHAR(1)</td>
+    </tr>
+</table>
+
+<!-- backups -->
+<table>
+    <tr>
+        <td><strong>backups</strong></td>
+    </tr>
+    <tr style="background-color:#DDDDDD">
+        <td>id</td>
+        <td>backup_id</td>
+        <td>user_id</td>
+        <td>file_size</td>
+        <td>file_name</td>
+        <td>type</td>
+        <td>date_created</td>
+        <td>backup_status</td>
+    </tr>
+    <tr>
+        <td>INT</td>
+        <td>VARCHAR(32)</td>
+        <td>VARCHAR(36)</td>
+        <td>FLOAT</td>
+        <td>VARCHAR(100)</td>
+        <td>VARCHAR(11)</td>
+        <td>DATETIME</td>
+        <td>VARCHAR(1)</td>
+    </tr>
+</table>
+
+<!-- uploads -->
+<table>
+    <tr>
+        <td><strong>uploads</strong></td>
+    </tr>
+    <tr style="background-color:#DDDDDD">
+        <td>id</td>
+        <td>upload_id</td>
+        <td>user_id</td>
+        <td>file_size</td>
+        <td>file_name</td>
+        <td>time_started</td>
+        <td>time_completed</td>
+        <td>upload_status</td>
+    </tr>
+    <tr>
+        <td>INT</td>
+        <td>VARCHAR(32)</td>
+        <td>VARCHAR(36)</td>
+        <td>FLOAT</td>
+        <td>VARCHAR(100)</td>
+        <td>DATETIME</td>
+        <td>DATETIME</td>
+        <td>VARCHAR(1)</td>
+    </tr>
+</table>
+
+<!-- recovery -->
+<table>
+    <tr>
+        <td><strong>recovery</strong></td>
+    </tr>
+    <tr style="background-color:#DDDDDD">
+        <td>id</td>
+        <td>recovery_id</td>
+        <td>user_id</td>
+        <td>backup_id</td>
+        <td>instance_id</td>
+        <td>conversion_id</td>
+        <td>file_name</td>
+        <td>recovery_state</td>
+    </tr>
+    <tr>
+        <td>INT</td>
+        <td>VARCHAR(32)</td>
+        <td>VARCHAR(36)</td>
+        <td>VARCHAR(32)</td>
+        <td>VARCHAR(10)</td>
+        <td>VARCHAR(18)</td>
+        <td>VARCHAR(100)</td>
+        <td>VARCHAR(12)</td>
+    </tr>    
+    <tr style="background-color:#DDDDDD">
+        <td>total_progress</td>
+        <td>state_progress</td>
+        <td>no_downloads</td>
+        <td>no_completed</td>
+        <td>instance_state</td>
+        <td>date_started</td>
+        <td>date_completed</td>
+        <td>recovery_status</td>
+    </tr>
+    <tr>
+        <td>INT</td>
+        <td>INT</td>
+        <td>INT</td>
+        <td>INT</td>
+        <td>VARCHAR(12)</td>
+        <td>DATETIME</td>
+        <td>DATETIME</td>
+        <td>VARCHAR(1)</td>
+    </tr>
+</table>
+
+<!-- instances -->
+<table>
+    <tr>
+        <td><strong>uploads</strong></td>
+    </tr>
+    <tr style="background-color:#DDDDDD">
+        <td>id</td>
+        <td>user_id</td>
+        <td>instance_id</td>
+        <td>instance_name</td>
+        <td>ip_address</td>
+    </tr>
+    <tr>
+        <td>INT</td>
+        <td>VARCHAR(36)</td>
+        <td>VARCHAR(10)</td>
+        <td>VARCHAR(32)</td>
+        <td>VARCHAR(16)</td>
+    </tr>
+    <tr style="background-color:#DDDDDD">
+        <td>instance_state</td>
+        <td>availability_zone</td>
+        <td>date_created</td>
+        <td>date_last_stopped</td>
+        <td>upload_status</td>
+    </tr>
+    <tr>
+        <td>VARCHAR(23)</td>
+        <td>VARCHAR(20)</td>
+        <td>DATETIME</td>
+        <td>DATETIME</td>
+        <td>VARCHAR(1)</td>
+    </tr>
+</table>
