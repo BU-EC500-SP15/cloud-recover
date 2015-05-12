@@ -149,7 +149,7 @@ AWS Resources
 
 ### S3 Storage ###
 
-We use a master bucket in S3 to hold all of our client backups, `reclo-client-backups`. Backups for each client are grouped into folders named using each clients unique ID. Create this bucket in S3 and give your API server permission to access it.
+We use a master bucket in S3 to hold all of our client backups, `reclo-client-backups`. Backups for each client are grouped into folders named using each clients unique ID. We also use a bucket to hold all of our imported instances (recovered from client backups), `reclo-imported-vms`. Create these buckets in S3 and give your API server permission to access them.
 
 ### RDS MySQL Database ###
 
@@ -316,7 +316,7 @@ Create the following tables in a new MySQL database:
 <!-- instances -->
 <table>
     <tr>
-        <td><strong>uploads</strong></td>
+        <td><strong>instances</strong></td>
     </tr>
     <tr style="background-color:#DDDDDD">
         <td>id</td>
@@ -347,3 +347,8 @@ Create the following tables in a new MySQL database:
         <td>VARCHAR(1)</td>
     </tr>
 </table>
+
+The database password, our AWS access key, and AWS secret key are stored in the API server's userdata. All of our userdata is maintained as a list of comma-separated, key-value pairs. For example:  
+`mysql=mysqlpassword1,  
+ access_key=ACCESSKEYto43AWS-23ab,  
+ secret_key=234t+3#SECRETKEY1!-vrs2`
