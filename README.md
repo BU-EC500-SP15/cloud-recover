@@ -93,8 +93,8 @@ Lastly, create a folder at the root `mkdir /backups-tmp/` to hold backups during
 ### Running the Server ###
 
 To start the API server, run:  
-`cd ~/cloud-recover/api  
-forever start -l forever.log -o ./logs/out.log -e ./logs/err.log ./bin/www`
+`cd ~/cloud-recover/api`  
+`forever start -l forever.log -o ./logs/out.log -e ./logs/err.log ./bin/www`
  
 This creates several logs that you can check to mointor the server's activity. The master log is in:  
 `~/.forever/forever.log`
